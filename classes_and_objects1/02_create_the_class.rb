@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Cat
-  attr_reader :name
+  attr_accessor :name
 
   def initialize(name)
     @name = name
