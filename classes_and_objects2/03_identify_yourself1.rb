@@ -14,3 +14,4 @@ end
 
 kitty = Cat.new('Sophie')
 p kitty.identify
+p kitty == kitty.identify
