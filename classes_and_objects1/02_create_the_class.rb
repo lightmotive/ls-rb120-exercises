@@ -1,7 +1,12 @@
 # frozen_string_literal: true
 
 class Cat
-  def initialize
-    puts "I'm a #{self.class}"
+  attr_reader :name
+  def initialize(name)
+    @name = name
+  end
+
+  def greeting
+    "Hello! My name is #{name} :-)"
   end
 end
