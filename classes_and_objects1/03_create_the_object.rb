@@ -8,3 +8,4 @@ kitty.greet
 
 kitty.name = 'Luna'
 kitty.greet
+kitty.walk
