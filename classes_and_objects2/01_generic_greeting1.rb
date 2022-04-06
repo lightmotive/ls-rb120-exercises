@@ -7,3 +7,8 @@ class Cat
 end
 
 Cat.generic_greeting
+
+# Further exploration:
+kitty = Cat.new
+kitty2 = kitty.class.new
+kitty2.class.generic_greeting
