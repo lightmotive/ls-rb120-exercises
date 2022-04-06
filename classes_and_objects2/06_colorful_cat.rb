@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 class Cat
-  attr_accessor :name
-
   COLOR = 'purple'
+
+  attr_accessor :name
 
   def initialize(name)
     self.name = name
