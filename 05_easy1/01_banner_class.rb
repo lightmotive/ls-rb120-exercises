@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 class Banner
-  def initialize(message)
-    @message = message
+  def initialize(message, max_width: nil)
+    @max_width = max_width
+    self.message = message
   end
 
   def to_s
@@ -11,18 +12,31 @@ class Banner
 
   private
 
-  attr_reader :message
+  attr_reader :message, :max_width
+  attr_accessor :message_for_banner
+
+  def message=(message)
+    @message = message
+
+    self.message_for_banner = message_max_width(message)
+  end
+
+  def message_max_width(message)
+    return message if max_width.nil?
+
+    "#{message.slice(0, max_width - 3)}..."
+  end
 
   def horizontal_rule
-    "+-#{'-' * message.length}-+"
+    "+-#{'-' * message_for_banner.length}-+"
   end
 
   def empty_line
-    "| #{' ' * message.length} |"
+    "| #{' ' * message_for_banner.length} |"
   end
 
   def message_line
-    "| #{message} |"
+    "| #{message_for_banner} |"
   end
 end
 
@@ -43,5 +57,15 @@ p(banner.to_s == <<~OUTPUT.strip
   |  |
   |  |
   +--+
+OUTPUT
+ )
+
+banner = Banner.new('To boldly go where no one has gone before.', max_width: 15)
+p(banner.to_s == <<~OUTPUT.strip
+  +-----------------+
+  |                 |
+  | To boldly go... |
+  |                 |
+  +-----------------+
 OUTPUT
  )
