@@ -6,12 +6,12 @@ class Person
     self.last_name = last_name
   end
 
-  def first_name=(first_name)
-    @first_name = first_name.capitalize
+  def first_name=(value)
+    @first_name = value.capitalize
   end
 
-  def last_name=(last_name)
-    @last_name = last_name.capitalize
+  def last_name=(value)
+    @last_name = value.capitalize
   end
 
   def to_s
