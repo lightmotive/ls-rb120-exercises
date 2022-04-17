@@ -8,8 +8,7 @@ class Car
   end
 
   def increment_mileage(miles)
-    total = mileage + miles
-    self.mileage = total
+    self.mileage += miles # This simplification requires Ruby v2.7 or later.
   end
 
   def print_mileage
