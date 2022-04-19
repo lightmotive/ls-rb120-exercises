@@ -17,19 +17,19 @@ class Vehicle
   end
 end
 
-class Car
+class Car < Vehicle
   def wheels
     4
   end
 end
 
-class Motorcycle
+class Motorcycle < Vehicle
   def wheels
     2
   end
 end
 
-class Truck
+class Truck < Vehicle
   attr_reader :payload
 
   def initialize(make, model, payload)
