@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Car
+class Vehicle
   attr_reader :make, :model
 
   def initialize(make, model)
@@ -9,45 +9,35 @@ class Car
   end
 
   def wheels
-    4
+    0 # The future is coming!
   end
 
   def to_s
     "#{make} #{model}"
+  end
+end
+
+class Car
+  def wheels
+    4
   end
 end
 
 class Motorcycle
-  attr_reader :make, :model
-
-  def initialize(make, model)
-    @make = make
-    @model = model
-  end
-
   def wheels
     2
-  end
-
-  def to_s
-    "#{make} #{model}"
   end
 end
 
 class Truck
-  attr_reader :make, :model, :payload
+  attr_reader :payload
 
   def initialize(make, model, payload)
-    @make = make
-    @model = model
+    super(make, model)
     @payload = payload
   end
 
   def wheels
     6
-  end
-
-  def to_s
-    "#{make} #{model}"
   end
 end
