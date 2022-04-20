@@ -27,8 +27,6 @@ class Person
 end
 
 class Nobility < Person
-  include Walkable
-
   attr_reader :title
 
   def initialize(name, title)
