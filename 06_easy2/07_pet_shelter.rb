@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Imagine an ORM managing this data store.
-module ShelterORM
+module ShelterData
   class Pet
     def initialize(type, name)
       self.type = type
@@ -126,27 +126,27 @@ class Shelter
   attr_reader :owners_pets, :unadopted_pets
 end
 
-butterscotch = ShelterORM::Pet.new('cat', 'Butterscotch')
-pudding      = ShelterORM::Pet.new('cat', 'Pudding')
-darwin       = ShelterORM::Pet.new('bearded dragon', 'Darwin')
-kennedy      = ShelterORM::Pet.new('dog', 'Kennedy')
-sweetie      = ShelterORM::Pet.new('parakeet', 'Sweetie Pie')
-molly        = ShelterORM::Pet.new('dog', 'Molly')
-chester      = ShelterORM::Pet.new('fish', 'Chester')
+butterscotch = ShelterData::Pet.new('cat', 'Butterscotch')
+pudding      = ShelterData::Pet.new('cat', 'Pudding')
+darwin       = ShelterData::Pet.new('bearded dragon', 'Darwin')
+kennedy      = ShelterData::Pet.new('dog', 'Kennedy')
+sweetie      = ShelterData::Pet.new('parakeet', 'Sweetie Pie')
+molly        = ShelterData::Pet.new('dog', 'Molly')
+chester      = ShelterData::Pet.new('fish', 'Chester')
 
-phanson = ShelterORM::Owner.new('P Hanson')
-bholmes = ShelterORM::Owner.new('B Holmes')
+phanson = ShelterData::Owner.new('P Hanson')
+bholmes = ShelterData::Owner.new('B Holmes')
 
-owners_pets = ShelterORM::OwnersPets.new([phanson, bholmes])
-unadopted_pets = ShelterORM::Pets.new(
+owners_pets = ShelterData::OwnersPets.new([phanson, bholmes])
+unadopted_pets = ShelterData::Pets.new(
   [
-    ShelterORM::Pet.new('dog', 'Asta'),
-    ShelterORM::Pet.new('dog', 'Laddie'),
-    ShelterORM::Pet.new('cat', 'Fluffy'),
-    ShelterORM::Pet.new('cat', 'Kat'),
-    ShelterORM::Pet.new('cat', 'Ben'),
-    ShelterORM::Pet.new('parakeet', 'Chatterbox'),
-    ShelterORM::Pet.new('parakeet', 'Bluebell')
+    ShelterData::Pet.new('dog', 'Asta'),
+    ShelterData::Pet.new('dog', 'Laddie'),
+    ShelterData::Pet.new('cat', 'Fluffy'),
+    ShelterData::Pet.new('cat', 'Kat'),
+    ShelterData::Pet.new('cat', 'Ben'),
+    ShelterData::Pet.new('parakeet', 'Chatterbox'),
+    ShelterData::Pet.new('parakeet', 'Bluebell')
   ]
 )
 
