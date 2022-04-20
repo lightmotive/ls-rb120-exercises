@@ -1,118 +1,158 @@
 # frozen_string_literal: true
 
-class Pet
-  def initialize(type, name)
-    self.type = type
-    self.name = name
+# Imagine an ORM managing this data store.
+module ShelterORM
+  class Pet
+    def initialize(type, name)
+      self.type = type
+      self.name = name
+    end
+
+    def to_s
+      "a #{type} named #{name}"
+    end
+
+    private
+
+    attr_accessor :type, :name
   end
 
-  def to_s
-    "a #{type} named #{name}"
+  class Owner
+    attr_reader :name
+
+    def initialize(name)
+      @name = name
+    end
+
+    def to_s
+      name
+    end
+
+    def ==(other)
+      name == other.name
+    end
+
+    alias eql? ==
+
+    def hash
+      name.hash
+    end
   end
 
-  private
+  class OwnersPets
+    attr_reader :owners
 
-  attr_accessor :type, :name
-end
+    def initialize(owner_list)
+      self.owners = owner_list.map do |owner|
+        [owner, { pets: Pets.new }]
+      end.to_h
+    end
 
-class Owner
-  attr_reader :name, :pets
+    def add_pet(owner, pet)
+      owners[owner][:pets].add(pet)
+    end
 
-  def initialize(name)
-    @name = name
-    @pets = []
+    def owner_summary(owner)
+      "#{owner.name} has #{owners[owner][:pets].count} adopted pets."
+    end
+
+    def to_s_detailed
+      owners.map do |owner, data|
+        "#{owner} has adopted the following pets:\n" \
+        "#{data[:pets]}"
+      end.join("\n\n")
+    end
+
+    def to_s
+      owners.map do |owner, _|
+        owner_summary(owner)
+      end.join("\n")
+    end
+
+    private
+
+    attr_writer :owners
   end
 
-  def add_pet(pet)
-    @pets.push(pet)
-  end
+  class Pets
+    def initialize(data = [])
+      self.data = data
+    end
 
-  def number_of_pets
-    @pets.size
-  end
+    def add(pet)
+      data.push(pet)
+    end
 
-  def to_s
-    name
-  end
+    def count
+      data.size
+    end
 
-  def ==(other)
-    name == other.name
-  end
+    def to_s
+      data.map(&:to_s).join("\n")
+    end
 
-  alias eql? ==
+    private
 
-  def hash
-    name.hash
+    attr_accessor :data
   end
 end
 
 class Shelter
-  def initialize
-    @owners = {}
-    @unadopted_pets = [
-      Pet.new('dog', 'Asta'),
-      Pet.new('dog', 'Laddie'),
-      Pet.new('cat', 'Fluffy'),
-      Pet.new('cat', 'Kat'),
-      Pet.new('cat', 'Ben'),
-      Pet.new('parakeet', 'Chatterbox'),
-      Pet.new('parakeet', 'Bluebell')
-    ]
-    # Imagine those are retrieved from data stores and are loaded into entity
-    # classes.
+  def initialize(owners_pets, unadopted_pets)
+    @owners_pets = owners_pets
+    @unadopted_pets = unadopted_pets
   end
 
   def adopt(owner, pet)
-    @owners[owner] ||= owner
-    owner.add_pet(pet)
-  end
-
-  def adoptions_as_string
-    lines = []
-
-    @owners.each do |owner, _|
-      lines.push "#{owner} has adopted the following pets:"
-      lines.push(*owner.pets.map(&:to_s))
-      lines.push('')
-    end
-
-    lines.join("\n").chomp
-  end
-
-  def print_adoptions
-    puts adoptions_as_string
+    owners_pets.add_pet(owner, pet)
   end
 
   def number_of_unadopted_pets
-    @unadopted_pets.size
+    unadopted_pets.count
+  end
+
+  def adoptions_as_string
+    # Imagine: `owners_pets` would first filter by owner with pets.
+    owners_pets.to_s_detailed
   end
 
   def unadopted_pets_as_string
-    lines = []
-
-    lines.push 'The Animal Shelter has the following unadopted pets:'
-    lines.push(*@unadopted_pets.map(&:to_s))
-
-    lines.join("\n")
+    "The Animal Shelter has the following unadopted pets:\n" \
+    "#{unadopted_pets}"
   end
 
-  def print_unadopted_pets
-    puts unadopted_pets_as_string
-  end
+  private
+
+  attr_reader :owners_pets, :unadopted_pets
 end
 
-butterscotch = Pet.new('cat', 'Butterscotch')
-pudding      = Pet.new('cat', 'Pudding')
-darwin       = Pet.new('bearded dragon', 'Darwin')
-kennedy      = Pet.new('dog', 'Kennedy')
-sweetie      = Pet.new('parakeet', 'Sweetie Pie')
-molly        = Pet.new('dog', 'Molly')
-chester      = Pet.new('fish', 'Chester')
+butterscotch = ShelterORM::Pet.new('cat', 'Butterscotch')
+pudding      = ShelterORM::Pet.new('cat', 'Pudding')
+darwin       = ShelterORM::Pet.new('bearded dragon', 'Darwin')
+kennedy      = ShelterORM::Pet.new('dog', 'Kennedy')
+sweetie      = ShelterORM::Pet.new('parakeet', 'Sweetie Pie')
+molly        = ShelterORM::Pet.new('dog', 'Molly')
+chester      = ShelterORM::Pet.new('fish', 'Chester')
 
-phanson = Owner.new('P Hanson')
-bholmes = Owner.new('B Holmes')
+phanson = ShelterORM::Owner.new('P Hanson')
+bholmes = ShelterORM::Owner.new('B Holmes')
 
-shelter = Shelter.new
+owners_pets = ShelterORM::OwnersPets.new([phanson, bholmes])
+unadopted_pets = ShelterORM::Pets.new(
+  [
+    ShelterORM::Pet.new('dog', 'Asta'),
+    ShelterORM::Pet.new('dog', 'Laddie'),
+    ShelterORM::Pet.new('cat', 'Fluffy'),
+    ShelterORM::Pet.new('cat', 'Kat'),
+    ShelterORM::Pet.new('cat', 'Ben'),
+    ShelterORM::Pet.new('parakeet', 'Chatterbox'),
+    ShelterORM::Pet.new('parakeet', 'Bluebell')
+  ]
+)
+
+# Imagine an ORM initialized those data stores and pulled data from a DB.
+
+shelter = Shelter.new(owners_pets, unadopted_pets)
 shelter.adopt(phanson, butterscotch)
 shelter.adopt(phanson, pudding)
 shelter.adopt(phanson, darwin)
@@ -121,7 +161,6 @@ shelter.adopt(bholmes, sweetie)
 shelter.adopt(bholmes, molly)
 shelter.adopt(bholmes, chester)
 
-# shelter.print_unadopted_pets
 p(shelter.unadopted_pets_as_string == <<~OUTPUT.strip
   The Animal Shelter has the following unadopted pets:
   a dog named Asta
@@ -133,7 +172,7 @@ p(shelter.unadopted_pets_as_string == <<~OUTPUT.strip
   a parakeet named Bluebell
 OUTPUT
  )
-# shelter.print_adoptions
+
 p(shelter.adoptions_as_string == <<~OUTPUT.strip
   P Hanson has adopted the following pets:
   a cat named Butterscotch
@@ -147,6 +186,13 @@ p(shelter.adoptions_as_string == <<~OUTPUT.strip
   a fish named Chester
 OUTPUT
  )
-p("#{phanson.name} has #{phanson.number_of_pets} adopted pets." == 'P Hanson has 3 adopted pets.')
-p("#{bholmes.name} has #{bholmes.number_of_pets} adopted pets." == 'B Holmes has 4 adopted pets.')
+
+p(owners_pets.to_s == <<~OUTPUT.strip
+  P Hanson has 3 adopted pets.
+  B Holmes has 4 adopted pets.
+OUTPUT
+ )
+
+p(owners_pets.owner_summary(phanson) == 'P Hanson has 3 adopted pets.')
+p(owners_pets.owner_summary(bholmes) == 'B Holmes has 4 adopted pets.')
 p("The Animal Shelter has #{shelter.number_of_unadopted_pets} unadopted pets." == 'The Animal Shelter has 7 unadopted pets.')
