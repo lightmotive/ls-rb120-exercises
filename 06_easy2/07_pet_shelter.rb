@@ -43,7 +43,7 @@ module ShelterData
     attr_reader :owners
 
     def initialize(owner_list)
-      self.owners = owner_list.map do |owner|
+      @owners = owner_list.map do |owner|
         [owner, { pets: Pets.new }]
       end.to_h
     end
@@ -51,17 +51,13 @@ module ShelterData
     def add_pet(owner, pet)
       owners[owner][:pets].add(pet)
     end
-
-    private
-
-    attr_writer :owners
   end
 
   class Pets
     attr_reader :data
 
     def initialize(data = [])
-      self.data = data
+      @data = data
     end
 
     def add(pet)
@@ -71,17 +67,13 @@ module ShelterData
     def count
       data.size
     end
-
-    private
-
-    attr_writer :data
   end
 end
 
 module ShelterDataFormatter
   class OwnersPets
     def initialize(owners_pets)
-      self.owners = owners_pets.owners
+      @owners = owners_pets.owners
     end
 
     def summary(owner)
@@ -105,12 +97,12 @@ module ShelterDataFormatter
 
     private
 
-    attr_accessor :owners
+    attr_reader :owners
   end
 
   class Pets
     def initialize(pets)
-      self.data = pets.data
+      @data = pets.data
     end
 
     def to_s
@@ -119,7 +111,7 @@ module ShelterDataFormatter
 
     private
 
-    attr_accessor :data
+    attr_reader :data
   end
 end
 
