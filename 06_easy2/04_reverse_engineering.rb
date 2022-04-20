@@ -6,11 +6,11 @@ class Transform
   end
 
   def uppercase
-    Transform.uppercase(string)
+    self.class.uppercase(string)
   end
 
   def lowercase
-    Transform.lowercase(string)
+    self.class.lowercase(string)
   end
 
   def self.uppercase(string)
