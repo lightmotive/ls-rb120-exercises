@@ -52,29 +52,14 @@ module ShelterData
       owners[owner][:pets].add(pet)
     end
 
-    def owner_summary(owner)
-      "#{owner.name} has #{owners[owner][:pets].count} adopted pets."
-    end
-
-    def to_s_detailed
-      owners.map do |owner, data|
-        "#{owner} has adopted the following pets:\n" \
-        "#{data[:pets]}"
-      end.join("\n\n")
-    end
-
-    def to_s
-      owners.map do |owner, _|
-        owner_summary(owner)
-      end.join("\n")
-    end
-
     private
 
     attr_writer :owners
   end
 
   class Pets
+    attr_reader :data
+
     def initialize(data = [])
       self.data = data
     end
@@ -85,6 +70,47 @@ module ShelterData
 
     def count
       data.size
+    end
+
+    private
+
+    attr_writer :data
+  end
+end
+
+module ShelterDataFormatter
+  class OwnersPets
+    def initialize(owners_pets)
+      self.owners = owners_pets.owners
+    end
+
+    def summary(owner)
+      "#{owner.name} has #{owners[owner][:pets].count} adopted pets."
+    end
+
+    def to_s_detailed
+      owners.map do |owner, data|
+        pets_formatter = ShelterDataFormatter::Pets.new(data[:pets])
+
+        "#{owner} has adopted the following pets:\n" \
+        "#{pets_formatter}"
+      end.join("\n\n")
+    end
+
+    def to_s
+      owners.map do |owner, _|
+        summary(owner)
+      end.join("\n")
+    end
+
+    private
+
+    attr_accessor :owners
+  end
+
+  class Pets
+    def initialize(pets)
+      self.data = pets.data
     end
 
     def to_s
@@ -112,19 +138,21 @@ class Shelter
   end
 
   def adoptions_as_string
-    # Imagine: `owners_pets` would first filter by owner with pets.
-    owners_pets.to_s_detailed
+    # Imagine: `owners_pets` would filter out owners without pets.
+    ShelterDataFormatter::OwnersPets.new(owners_pets).to_s_detailed
   end
 
   def unadopted_pets_as_string
     "The Animal Shelter has the following unadopted pets:\n" \
-    "#{unadopted_pets}"
+    "#{ShelterDataFormatter::Pets.new(unadopted_pets)}"
   end
 
   private
 
   attr_reader :owners_pets, :unadopted_pets
 end
+
+# Imagine an ORM initializing these items from a DB.
 
 butterscotch = ShelterData::Pet.new('cat', 'Butterscotch')
 pudding      = ShelterData::Pet.new('cat', 'Pudding')
@@ -149,8 +177,6 @@ unadopted_pets = ShelterData::Pets.new(
     ShelterData::Pet.new('parakeet', 'Bluebell')
   ]
 )
-
-# Imagine an ORM initialized those data stores and pulled data from a DB.
 
 shelter = Shelter.new(owners_pets, unadopted_pets)
 shelter.adopt(phanson, butterscotch)
@@ -187,12 +213,14 @@ p(shelter.adoptions_as_string == <<~OUTPUT.strip
 OUTPUT
  )
 
-p(owners_pets.to_s == <<~OUTPUT.strip
+owners_pets_formatter = ShelterDataFormatter::OwnersPets.new(owners_pets)
+
+p(owners_pets_formatter.to_s == <<~OUTPUT.strip
   P Hanson has 3 adopted pets.
   B Holmes has 4 adopted pets.
 OUTPUT
  )
 
-p(owners_pets.owner_summary(phanson) == 'P Hanson has 3 adopted pets.')
-p(owners_pets.owner_summary(bholmes) == 'B Holmes has 4 adopted pets.')
+p(owners_pets_formatter.summary(phanson) == 'P Hanson has 3 adopted pets.')
+p(owners_pets_formatter.summary(bholmes) == 'B Holmes has 4 adopted pets.')
 p("The Animal Shelter has #{shelter.number_of_unadopted_pets} unadopted pets." == 'The Animal Shelter has 7 unadopted pets.')
