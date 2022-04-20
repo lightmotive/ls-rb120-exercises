@@ -23,7 +23,7 @@ class Owner
     @pets = []
   end
 
-  def adopt(pet)
+  def add_pet(pet)
     @pets.push(pet)
   end
 
@@ -38,6 +38,16 @@ class Owner
   def to_s
     name
   end
+
+  def ==(other)
+    name == other.name
+  end
+
+  alias eql? ==
+
+  def hash
+    name.hash
+  end
 end
 
 class Shelter
@@ -46,8 +56,8 @@ class Shelter
   end
 
   def adopt(owner, pet)
-    @owners[owner] = owner
-    owner.adopt(pet)
+    @owners[owner] ||= owner
+    owner.add_pet(pet)
   end
 
   def adoptions_as_string
