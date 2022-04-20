@@ -31,10 +31,6 @@ class Owner
     @pets.size
   end
 
-  def pets_as_string_list
-    @pets.map(&:to_s)
-  end
-
   def to_s
     name
   end
@@ -53,6 +49,17 @@ end
 class Shelter
   def initialize
     @owners = {}
+    @unadopted_pets = [
+      Pet.new('dog', 'Asta'),
+      Pet.new('dog', 'Laddie'),
+      Pet.new('cat', 'Fluffy'),
+      Pet.new('cat', 'Kat'),
+      Pet.new('cat', 'Ben'),
+      Pet.new('parakeet', 'Chatterbox'),
+      Pet.new('parakeet', 'Bluebell')
+    ]
+    # Imagine those are retrieved from data stores and are loaded into entity
+    # classes.
   end
 
   def adopt(owner, pet)
@@ -65,7 +72,7 @@ class Shelter
 
     @owners.each do |owner, _|
       lines.push "#{owner} has adopted the following pets:"
-      lines.push(*owner.pets_as_string_list)
+      lines.push(*owner.pets.map(&:to_s))
       lines.push('')
     end
 
@@ -74,6 +81,23 @@ class Shelter
 
   def print_adoptions
     puts adoptions_as_string
+  end
+
+  def number_of_unadopted_pets
+    @unadopted_pets.size
+  end
+
+  def unadopted_pets_as_string
+    lines = []
+
+    lines.push 'The Animal Shelter has the following unadopted pets:'
+    lines.push(*@unadopted_pets.map(&:to_s))
+
+    lines.join("\n")
+  end
+
+  def print_unadopted_pets
+    puts unadopted_pets_as_string
   end
 end
 
@@ -97,6 +121,18 @@ shelter.adopt(bholmes, sweetie)
 shelter.adopt(bholmes, molly)
 shelter.adopt(bholmes, chester)
 
+# shelter.print_unadopted_pets
+p(shelter.unadopted_pets_as_string == <<~OUTPUT.strip
+  The Animal Shelter has the following unadopted pets:
+  a dog named Asta
+  a dog named Laddie
+  a cat named Fluffy
+  a cat named Kat
+  a cat named Ben
+  a parakeet named Chatterbox
+  a parakeet named Bluebell
+OUTPUT
+ )
 # shelter.print_adoptions
 p(shelter.adoptions_as_string == <<~OUTPUT.strip
   P Hanson has adopted the following pets:
@@ -113,3 +149,4 @@ OUTPUT
  )
 p("#{phanson.name} has #{phanson.number_of_pets} adopted pets." == 'P Hanson has 3 adopted pets.')
 p("#{bholmes.name} has #{bholmes.number_of_pets} adopted pets." == 'B Holmes has 4 adopted pets.')
+p("The Animal Shelter has #{shelter.number_of_unadopted_pets} unadopted pets." == 'The Animal Shelter has 7 unadopted pets.')
