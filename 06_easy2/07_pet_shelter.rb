@@ -70,7 +70,7 @@ module ShelterData
   end
 end
 
-module ShelterDataFormatter
+module ShelterDataFormatters
   class OwnersPets
     def initialize(owners_pets)
       @owners = owners_pets.owners
@@ -82,7 +82,7 @@ module ShelterDataFormatter
 
     def to_s_detailed
       owners.map do |owner, data|
-        pets_formatter = ShelterDataFormatter::Pets.new(data[:pets])
+        pets_formatter = ShelterDataFormatters::Pets.new(data[:pets])
 
         "#{owner} has adopted the following pets:\n" \
         "#{pets_formatter}"
@@ -131,12 +131,12 @@ class Shelter
 
   def adoptions_as_string
     # Imagine: `owners_pets` would filter out owners without pets.
-    ShelterDataFormatter::OwnersPets.new(owners_pets).to_s_detailed
+    ShelterDataFormatters::OwnersPets.new(owners_pets).to_s_detailed
   end
 
   def unadopted_pets_as_string
     "The Animal Shelter has the following unadopted pets:\n" \
-    "#{ShelterDataFormatter::Pets.new(unadopted_pets)}"
+    "#{ShelterDataFormatters::Pets.new(unadopted_pets)}"
   end
 
   private
@@ -205,7 +205,7 @@ p(shelter.adoptions_as_string == <<~OUTPUT.strip
 OUTPUT
  )
 
-owners_pets_formatter = ShelterDataFormatter::OwnersPets.new(owners_pets)
+owners_pets_formatter = ShelterDataFormatters::OwnersPets.new(owners_pets)
 
 p(owners_pets_formatter.to_s == <<~OUTPUT.strip
   P Hanson has 3 adopted pets.
