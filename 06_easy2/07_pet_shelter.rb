@@ -116,9 +116,10 @@ module ShelterDataFormatters
 end
 
 class Shelter
-  def initialize(owners_pets, unadopted_pets)
+  def initialize(owners_pets, unadopted_pets, formatters: ShelterDataFormatters)
     @owners_pets = owners_pets
     @unadopted_pets = unadopted_pets
+    @formatters = formatters
   end
 
   def adopt(owner, pet)
@@ -131,17 +132,17 @@ class Shelter
 
   def adoptions_as_string
     # Imagine: `owners_pets` would filter out owners without pets.
-    ShelterDataFormatters::OwnersPets.new(owners_pets).to_s_detailed
+    formatters::OwnersPets.new(owners_pets).to_s_detailed
   end
 
   def unadopted_pets_as_string
     "The Animal Shelter has the following unadopted pets:\n" \
-    "#{ShelterDataFormatters::Pets.new(unadopted_pets)}"
+    "#{formatters::Pets.new(unadopted_pets)}"
   end
 
   private
 
-  attr_reader :owners_pets, :unadopted_pets
+  attr_reader :owners_pets, :unadopted_pets, :formatters
 end
 
 # Imagine an ORM initializing these items from a DB.
