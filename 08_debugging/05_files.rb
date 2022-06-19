@@ -18,10 +18,12 @@ class File
   end
 
   def to_s
-    "#{name}.#{FORMAT}"
+    "#{name}.#{self.class::FORMAT}"
     # Line 21 raises the exception because the `FORMAT` constant is not
     # available here due to Ruby's lexical scoping rules.
     # The solution is to reference the constant in the subclass.
+    # `self` refers to the object/instance. `self.class` refers to that object's
+    # class definition where `FORMAT` is initialized.
   end
 end
 
