@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
+require 'pry'
+
 class Length
+  include Comparable
+
   attr_reader :value, :unit
 
   def initialize(value, unit)
@@ -20,46 +24,24 @@ class Length
     convert_to(:nmi, { km: 1.8519993, mi: 1.15078, nmi: 1 })
   end
 
-  def ==(other)
-    case unit
-    when :km  then value == other.as_kilometers.value
-    when :mi  then value == other.as_miles.value
-    when :nmi then value == other.as_nautical_miles.value
-    end
-  end
-
-  def <(other)
-    case unit
-    when :km  then value < other.as_kilometers.value
-    when :mi  then value < other.as_miles.value
-    when :nmi then value < other.as_nautical_miles.value
-    end
-  end
-
-  def <=(other)
-    self < other || self == other
-  end
-
-  def >(other)
-    !(self <= other)
-  end
-
-  def >=(other)
-    self > other || self == other
-  end
-
   def <=>(other)
     return nil if other.class != self.class
 
-    if self > other then 1
-    elsif self == other then 0
-    else
-      -1
-    end
+    value <=> other.as_unit(unit).value
   end
 
   def to_s
     "#{value} #{unit}"
+  end
+
+  protected
+
+  def as_unit(unit)
+    case unit
+    when :km then as_kilometers
+    when :mi then as_miles
+    when :nmi then as_nautical_miles
+    end
   end
 
   private
@@ -80,3 +62,5 @@ puts [Length.new(1, :mi), Length.new(1, :nmi), Length.new(1, :km)].sort
 
 # Problem: `Array#sort` uses `<=>` to compare each object internally.
 # Basic solution: implement `<=>`
+# Better solution: include `Comparable`, implement `<=>`, and delete the other
+# comparison and equality methods.
