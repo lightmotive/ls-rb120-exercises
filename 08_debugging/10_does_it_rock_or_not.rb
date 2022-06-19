@@ -28,8 +28,6 @@ module DoesItRock
 
       positive / (positive + negative)
     rescue AuthenticationError
-      # Line 31 is the first problem: one shouldn't rescue `Exception` here
-      # because it catches all errors.
       NoScore
     end
   end
@@ -39,6 +37,13 @@ module DoesItRock
 
     case score
     when NoScore
+      # Line 39 above is the next problem:
+      # NoScore doesn't respond to `===`, which is how `case` tests whether
+      # patterns (`when [...]`) match an object (`score`).
+      # In this case, the simplest solution would be to implement `self.===` in
+      # `NoScore`. Perhaps we'd want `===` to be an instance method, but since
+      # this is a simple mock-up with no additional implementation details,
+      # we'll start with a class method.
       "No idea about #{term}..."
     when 0...0.5
       "#{term} is not fun."
