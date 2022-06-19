@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class AuthenticationError < Exception; end
+class AuthenticationError < StandardError; end
 
 # A mock search engine
 # that returns a random number instead of an actual count.
@@ -27,7 +27,7 @@ module DoesItRock
       negative = SearchEngine.count(%("#{term} is not fun"), API_KEY).to_f
 
       positive / (positive + negative)
-    rescue Exception
+    rescue AuthenticationError
       # Line 31 is the first problem: one shouldn't rescue `Exception` here
       # because it catches all errors.
       NoScore
