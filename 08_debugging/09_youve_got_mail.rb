@@ -33,7 +33,7 @@ module Mailing
     false
   end
 
-  def send(destination, mail)
+  def send_mail(destination, mail)
     "Sending #{mail} from #{name} to: #{destination}"
     # Omitting the actual sending.
   end
@@ -92,7 +92,7 @@ johns_phone_service   = TelephoneService.new('John', 122, '555-232-1121')
 johns_postal_service  = PostalService.new('John', '47 Sunshine Ave.')
 ellens_postal_service = PostalService.new('Ellen', '860 Blackbird Ln.')
 
-puts johns_postal_service.send(
+puts johns_postal_service.send_mail(
   ellens_postal_service.street_address,
   Postcard.new('Greetings from Silicon Valley!')
 )
@@ -104,4 +104,4 @@ puts johns_postal_service.send(
 # (`Postcard` object).
 # Solution: include the `Mailing` module.
 # - Caveat: `Mailing#send` overrides `Object#send`, which may not be desired
-#   in some programs.
+#   in some programs. Therefore, let's rename `Mailing#send` to `#send_mail`.
