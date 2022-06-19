@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Library
-  attr_accessor :address, :phone, :books
+  attr_accessor :address, :phone
 
   def initialize(address, phone)
     @address = address
@@ -12,6 +12,14 @@ class Library
   def check_in(book)
     books.push(book)
   end
+
+  def display_books
+    books.each(&:display_data)
+  end
+
+  private
+
+  attr_reader :books
 end
 
 class Book
@@ -45,4 +53,7 @@ community_library.check_in(wrinkle_in_time)
 # Problem with line 44: `books` is an array, which doesn't have a `display_data`
 # method. The intention: display data for each `book` object in `books`.
 # Quick solution:
-community_library.books.each(&:display_data)
+# community_library.books.each(&:display_data)
+# That behavior should be encapsulated in `Library`:
+community_library.display_books
+# NOTE: the `books` attribute is now private so `Library` can protect the data.
