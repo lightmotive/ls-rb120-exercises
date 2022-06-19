@@ -48,6 +48,16 @@ class Length
     self > other || self == other
   end
 
+  def <=>(other)
+    return nil if other.class != self.class
+
+    if self > other then 1
+    elsif self == other then 0
+    else
+      -1
+    end
+  end
+
   def to_s
     "#{value} #{unit}"
   end
