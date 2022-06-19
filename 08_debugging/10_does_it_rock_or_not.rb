@@ -19,7 +19,11 @@ end
 module DoesItRock
   API_KEY = 'LS1A2'
 
-  class NoScore; end
+  class NoScore
+    def self.===(other)
+      self == other
+    end
+  end
 
   class Score
     def self.for_term(term)
