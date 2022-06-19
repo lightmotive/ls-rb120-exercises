@@ -19,11 +19,7 @@ end
 module DoesItRock
   API_KEY = 'LS1A2'
 
-  class NoScore
-    def self.===(other)
-      self == other
-    end
-  end
+  class NoScore; end
 
   class Score
     def self.for_term(term)
@@ -31,8 +27,8 @@ module DoesItRock
       negative = SearchEngine.count(%("#{term} is not fun"), API_KEY).to_f
 
       positive / (positive + negative)
-    rescue AuthenticationError
-      NoScore
+    rescue ZeroDivisionError
+      NoScore.new
     end
   end
 
@@ -49,7 +45,7 @@ module DoesItRock
     else
       "#{term} rocks!"
     end
-  rescue Exception => e
+  rescue StandardError => e
     e.message
   end
 end
