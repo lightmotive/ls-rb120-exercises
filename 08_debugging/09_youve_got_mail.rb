@@ -72,6 +72,8 @@ class TelephoneService < CommunicationsProvider
 end
 
 class PostalService < CommunicationsProvider
+  include Mailing
+
   attr_accessor :street_address, :mailbox
 
   def initialize(name, street_address)
@@ -100,5 +102,6 @@ puts johns_postal_service.send(
 # in the implicitly inherited `Object` class. Therefore, the line is invoking
 # `Object#send` with a method name (`street_address` return value) and argument
 # (`Postcard` object).
-# Solution: Implement a method with a different name than `send` so as not to
-# override `Object#send`.
+# Solution: include the `Mailing` module.
+# - Caveat: `Mailing#send` overrides `Object#send`, which may not be desired
+#   in some programs.
