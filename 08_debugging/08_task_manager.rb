@@ -34,15 +34,15 @@ class TaskManager
   end
 
   def display_high_priority_tasks
-    tasks = tasks.select do |task|
-      # The problem is with line 37:
-      # `tasks` is initialized as a local variable and assigned to `nil` by
-      # default. We need to use a different variable name or explicitly
-      # reference the object's `tasks` attribute.
+    # Instead of renaming the local variable, one could write:
+    # `tasks = self.tasks.select...`
+    # However, the local variable `tasks` would then shadow the class'
+    # `tasks` reader method, which can be confusing.
+    selected_tasks = tasks.select do |task|
       task.priority == :high
     end
 
-    display(tasks)
+    display(selected_tasks)
   end
 
   private
