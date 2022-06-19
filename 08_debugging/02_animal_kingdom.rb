@@ -25,10 +25,6 @@ class Bird < Animal
 end
 
 class FlightlessBird < Bird
-  def initialize(diet, superpower)
-    super
-  end
-
   def move
     puts "I'm running!"
   end
