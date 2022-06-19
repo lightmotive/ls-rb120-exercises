@@ -34,15 +34,11 @@ class TaskManager
   end
 
   def display_high_priority_tasks
-    # Instead of renaming the local variable, one could write:
-    # `tasks = self.tasks.select...`
-    # However, the local variable `tasks` would then shadow the class'
-    # `tasks` reader method, which can be confusing.
-    selected_tasks = tasks.select do |task|
-      task.priority == :high
-    end
+    display(high_priority_tasks)
+  end
 
-    display(selected_tasks)
+  def high_priority_tasks
+    tasks.select { |task| task.priority == :high }
   end
 
   private
