@@ -9,11 +9,19 @@ class Machine
     flip_switch(:off)
   end
 
+  def state
+    switch
+  end
+
   private
 
-  attr_writer :switch
+  attr_accessor :switch
 
   def flip_switch(desired_state)
     self.switch = desired_state
   end
 end
+
+machine = Machine.new
+machine.start
+puts machine.state
