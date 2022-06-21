@@ -1,17 +1,38 @@
 # frozen_string_literal: true
 
-# We can inherit Array and override a couple methods to yield the
-# results below:
-class FixedArray < Array
+# Instead of inheriting from Array, we use a collaborator object so we don't
+# have to override or maintain any of `Array`'s methods that are beyond
+# problem domain.
+class FixedArray
+  def initialize(size)
+    @array = Array.new(size)
+  end
+
   def [](idx)
-    fetch(idx)
+    array.fetch(idx)
   end
 
   def []=(idx, value)
-    raise IndexError, "index #{idx} outside of #{self.class.name} bounds: 0...#{size}" unless idx.between?(0, size - 1)
-
-    super
+    self[idx]
+    array[idx] = value
   end
+
+  def to_a
+    # `Array#to_a` returns `self` only if `self.is_a?(Array)`
+    # Otherwise, return a clone of the array.
+    # In this case, the latter is consistent with Standard Library `Array` behavior.
+    array.clone
+  end
+
+  def inspect
+    array.inspect
+  end
+
+  alias to_s inspect
+
+  private
+
+  attr_reader :array
 end
 
 fixed_array = FixedArray.new(5)
