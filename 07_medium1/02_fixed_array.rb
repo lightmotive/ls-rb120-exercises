@@ -3,6 +3,8 @@
 # Instead of inheriting from Array, we use a collaborator object so we don't
 # have to override or maintain any of `Array`'s methods that are beyond
 # problem domain.
+# If it becomes necessary to override some methods and forward others to the
+# collaborator object, one can implement the `Forwardable` module.
 class FixedArray
   def initialize(size)
     @array = Array.new(size)
@@ -19,8 +21,9 @@ class FixedArray
 
   def to_a
     # `Array#to_a` returns `self` only if `self.is_a?(Array)`
-    # Otherwise, return a clone of the array.
-    # In this case, the latter is consistent with Standard Library `Array` behavior.
+    # Otherwise, it returns a clone of `self`.
+    # In this case, implementing the latter here would be most consistent with
+    # the Standard Library's `Array` behavior.
     array.clone
   end
 
