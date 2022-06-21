@@ -1,12 +1,39 @@
 # frozen_string_literal: true
 
 # Circular queue:
-# enqueue(item):
+# `enqueue(item)`:
 # - If queue is already full, first remove the first item (oldest).
 # - Add item to the end of the queue.
-# dequeue
+# `dequeue`
 # - If no items, return nil.
 # - Otherwise, remove and return first item.
+
+class CircularQueue
+  attr_reader :size
+
+  def initialize(size)
+    @size = size
+    @array = []
+  end
+
+  def enqueue(item)
+    array.shift if array.size == size
+
+    array.push(item)
+
+    self
+  end
+
+  def dequeue
+    return nil if array.empty?
+
+    array.shift
+  end
+
+  private
+
+  attr_accessor :array
+end
 
 queue = CircularQueue.new(3)
 puts queue.dequeue.nil?
