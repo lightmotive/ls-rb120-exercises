@@ -1,6 +1,18 @@
 # frozen_string_literal: true
 
-# Implement class to enable code below...
+# We can inherit Array and override a couple methods to yield the
+# results below:
+class FixedArray < Array
+  def [](idx)
+    fetch(idx)
+  end
+
+  def []=(idx, value)
+    raise IndexError, "index #{idx} outside of #{self.class.name} bounds: 0...#{size}" unless idx.between?(0, size - 1)
+
+    super
+  end
+end
 
 fixed_array = FixedArray.new(5)
 puts fixed_array[3].nil?
