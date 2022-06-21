@@ -17,22 +17,29 @@ class CircularQueue
   end
 
   def enqueue(item)
-    array.shift if array.size == size
+    dequeue if array.size == size
 
     array.push(item)
 
     self
+    # Return the `CircularQueue` instance to align with `Array#push` or similar
+    # behavior, which basically appends an item to the internal data structure
+    # and then returns `self`.
+
+    # If we weren't aligning with a similar Standard Library data structure
+    # class' behavior for some reason, we probably would still return `self`
+    # so that this method wouldn't return a pointer to the private `@array`'s
+    # assigned array object, which would allow manipulating the internal data,
+    # structure.
   end
 
   def dequeue
-    return nil if array.empty?
-
     array.shift
   end
 
   private
 
-  attr_accessor :array
+  attr_reader :array
 end
 
 queue = CircularQueue.new(3)
