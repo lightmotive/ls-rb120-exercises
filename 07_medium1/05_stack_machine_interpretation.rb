@@ -12,10 +12,10 @@ class Minilang
     reset
   end
 
-  def eval(statement)
+  def eval(program)
     reset
-    self.statement = statement
-    self.expressions = statement.split
+    self.program = program
+    self.expressions = program.split
 
     execute(expressions.shift) until expressions.empty?
   end
@@ -63,13 +63,13 @@ class Minilang
 
   private
 
-  attr_accessor :register, :expressions, :statement
+  attr_accessor :register, :expressions, :program
   attr_reader :stack, :print_to_stdout
 
   alias print_to_stdout? print_to_stdout
 
   def reset
-    self.statement = nil
+    self.program = nil
     self.expressions = []
     @register = 0
     @stack = []
@@ -109,10 +109,10 @@ class Minilang
   # rubocop:disable Metrics/AbcSize
   def raise_error_with_state(error_class, message)
     message.concat("\n--#{self.class.name} State--")
+    message.concat("\n@program=#{program}")
     message.concat("\n@expressions=#{expressions.pretty_inspect.strip}")
     message.concat("\n@register=#{register}")
     message.concat("\n@stack=#{stack.pretty_inspect.strip}")
-    message.concat("\n@statement=#{statement}")
     message.concat("\n@stdout_log=#{stdout_log.pretty_inspect}")
     raise error_class, message
   end
@@ -122,11 +122,11 @@ end
 # The OOP program above is based on this procedural version:
 # https://github.com/lightmotive/ls-rb101-exercises/blob/main/11_medium1/06_stack_machine_interpretation.rb
 
-def minilang_test(statement)
+def minilang_test(program)
   minilang = Minilang.new(print_to_stdout: false)
 
   begin
-    minilang.eval(statement)
+    minilang.eval(program)
     minilang
   rescue StandardError => e
     e
@@ -141,7 +141,7 @@ p minilang_test('3 PUSH 4 PUSH 5 PUSH PRINT ADD PRINT POP PRINT ADD PRINT').stdo
 p minilang_test('3 PUSH PUSH 7 DIV MULT PRINT ').stdout_log == ['6']
 p minilang_test('4 PUSH PUSH 7 MOD MULT PRINT ').stdout_log == ['12']
 p minilang_test('-3 PUSH 5 SUB PRINT').stdout_log == ['8']
-# "Exec API" example that replicates statement above
+# "Exec API" example that replicates program above
 minilang = Minilang.new(print_to_stdout: false)
 minilang.exec_integer('-3')
 minilang.exec_push
@@ -173,7 +173,7 @@ p result.message == <<~MSG
   @expressions=[]
   @register=6
   @stack=[]
-  @statement=6 PUSH POP POP
+  @program=6 PUSH POP POP
   @stdout_log=[]
 MSG
 
@@ -185,7 +185,7 @@ p result.message == <<~MSG
   @expressions=[]
   @register=12
   @stack=[]
-  @statement=6 PUSH ADD ADD
+  @program=6 PUSH ADD ADD
   @stdout_log=[]
 MSG
 
@@ -197,6 +197,6 @@ p result.message == <<~MSG
   @expressions=["PRINT"]
   @register=5
   @stack=[-3]
-  @statement=-3 PUSH 5 SUBTRACT PRINT
+  @program=-3 PUSH 5 SUBTRACT PRINT
   @stdout_log=[]
 MSG
