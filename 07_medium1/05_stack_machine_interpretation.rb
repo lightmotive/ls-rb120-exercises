@@ -20,38 +20,38 @@ class Minilang
     execute(expressions.shift) until expressions.empty?
   end
 
-  def exec_print
+  def print
     output = register.to_s
     stdout_log.push(output)
     puts output if print_to_stdout?
   end
 
-  def exec_push
+  def push
     stack.push(register)
   end
 
-  def exec_pop
+  def pop
     validate_pop
     self.register = stack.pop
   end
 
-  def exec_add
+  def add
     operate(:+)
   end
 
-  def exec_sub
+  def sub
     operate(:-)
   end
 
-  def exec_mult
+  def mult
     operate(:*)
   end
 
-  def exec_div
+  def div
     operate(:/)
   end
 
-  def exec_mod
+  def mod
     operate(:%)
   end
 
@@ -86,7 +86,7 @@ class Minilang
   end
 
   def find_command(expression)
-    command = "exec_#{expression.downcase}".to_sym
+    command = expression.downcase.to_s.to_sym
     return command if respond_to?(command)
 
     nil
@@ -144,10 +144,10 @@ p minilang_test('-3 PUSH 5 SUB PRINT').stdout_log == ['8']
 # "Exec API" example that replicates program above
 minilang = Minilang.new(print_to_stdout: false)
 minilang.exec_integer('-3')
-minilang.exec_push
+minilang.push
 minilang.exec_integer('5')
-minilang.exec_sub
-minilang.exec_print
+minilang.sub
+minilang.print
 p minilang.stdout_log == ['8']
 
 p minilang_test('6 PUSH').stdout_log == []
@@ -170,10 +170,10 @@ p result.is_a?(StandardError)
 p result.message == <<~MSG
   The stack was empty.
   --Minilang State--
+  @program=6 PUSH POP POP
   @expressions=[]
   @register=6
   @stack=[]
-  @program=6 PUSH POP POP
   @stdout_log=[]
 MSG
 
@@ -182,10 +182,10 @@ p result.is_a?(StandardError)
 p result.message == <<~MSG
   The stack was empty. Operation: +
   --Minilang State--
+  @program=6 PUSH ADD ADD
   @expressions=[]
   @register=12
   @stack=[]
-  @program=6 PUSH ADD ADD
   @stdout_log=[]
 MSG
 
@@ -194,9 +194,9 @@ p result.is_a?(ArgumentError)
 p result.message == <<~MSG
   SUBTRACT is not a valid expression.
   --Minilang State--
+  @program=-3 PUSH 5 SUBTRACT PRINT
   @expressions=["PRINT"]
   @register=5
   @stack=[-3]
-  @program=-3 PUSH 5 SUBTRACT PRINT
   @stdout_log=[]
 MSG
