@@ -152,11 +152,7 @@ p minilang_test('4 PUSH PUSH 7 MOD MULT PRINT ').stdout_log == ['12']
 p minilang_test('-3 PUSH 5 SUB PRINT').stdout_log == ['8']
 # "Exec API" example that replicates program above
 minilang = Minilang.new(print_to_stdout: false)
-minilang.integer(-3)
-minilang.push
-minilang.integer(5)
-minilang.sub
-minilang.print
+minilang.integer(-3).push.integer(5).sub.print
 p minilang.stdout_log == ['8']
 
 p minilang_test('6 PUSH').stdout_log == []
