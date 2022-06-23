@@ -40,8 +40,7 @@ class Minilang
   end
 
   def pop
-    validate_pop
-    self.register = stack.pop
+    self.register = stack_pop_with_validation
 
     self
   end
@@ -100,19 +99,21 @@ class Minilang
   end
 
   def operate(operation)
-    validate_pop(detail: "Operation: #{operation}")
-    self.register = register.send(operation, stack.pop)
+    self.register = register.send(
+      operation,
+      stack_pop_with_validation(detail: "Operation: #{operation}")
+    )
 
     self
   end
 
-  def validate_pop(detail: String.new)
-    if stack.size.zero?
+  def stack_pop_with_validation(detail: String.new)
+    if stack.empty?
       detail = String.new(" #{detail}") unless detail.empty?
       raise_error_with_state(EmptyStackError, "The stack was empty.#{detail}")
     end
 
-    nil
+    stack.pop
   end
 
   # rubocop:disable Metrics/AbcSize
