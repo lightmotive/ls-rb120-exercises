@@ -1,10 +1,15 @@
 # frozen_string_literal: true
 
 require 'pp'
-require 'pry'
+
+class MinilangError < StandardError; end
+class BadTokenError < MinilangError; end
+class EmptyStackError < MinilangError; end
 
 # Stack Machine interpreter.
 class Minilang
+  ACTIONS = %w[PRINT PUSH POP ADD SUB MULT DIV MOD].freeze
+
   attr_reader :stdout_log
 
   def initialize(print_to_stdout: true)
@@ -24,15 +29,21 @@ class Minilang
     output = register.to_s
     stdout_log.push(output)
     puts output if print_to_stdout?
+
+    self
   end
 
   def push
     stack.push(register)
+
+    self
   end
 
   def pop
     validate_pop
     self.register = stack.pop
+
+    self
   end
 
   def add
@@ -55,10 +66,10 @@ class Minilang
     operate(:%)
   end
 
-  def exec_integer(expression)
-    self.register = Integer(expression)
-  rescue ArgumentError
-    raise_error_with_state(ArgumentError, "#{expression} is not a valid expression.")
+  def integer(integer)
+    self.register = integer
+
+    self
   end
 
   private
@@ -71,23 +82,19 @@ class Minilang
   def reset
     self.program = nil
     self.expressions = []
-    @register = 0
+    self.register = 0
     @stack = []
     @stdout_log = []
   end
 
-  def execute(expression)
-    command = find_command(expression)
-    return exec_integer(expression) if command.nil?
-
-    send(command.downcase.to_sym)
-
-    nil
-  end
-
-  def find_command(expression)
-    command = expression.downcase.to_s.to_sym
-    return command if respond_to?(command)
+  def execute(token)
+    if ACTIONS.include?(token)
+      send(token.downcase.to_sym)
+    elsif token =~ /[+-]?\d+/
+      integer(token.to_i)
+    else
+      raise_error_with_state(BadTokenError, "#{token} is not a valid token.")
+    end
 
     nil
   end
@@ -95,12 +102,14 @@ class Minilang
   def operate(operation)
     validate_pop(detail: "Operation: #{operation}")
     self.register = register.send(operation, stack.pop)
+
+    self
   end
 
   def validate_pop(detail: String.new)
     if stack.size.zero?
       detail = String.new(" #{detail}") unless detail.empty?
-      raise_error_with_state(StandardError, "The stack was empty.#{detail}")
+      raise_error_with_state(EmptyStackError, "The stack was empty.#{detail}")
     end
 
     nil
@@ -128,7 +137,7 @@ def minilang_test(program)
   begin
     minilang.eval(program)
     minilang
-  rescue StandardError => e
+  rescue MinilangError => e
     e
   end
 end
@@ -143,9 +152,9 @@ p minilang_test('4 PUSH PUSH 7 MOD MULT PRINT ').stdout_log == ['12']
 p minilang_test('-3 PUSH 5 SUB PRINT').stdout_log == ['8']
 # "Exec API" example that replicates program above
 minilang = Minilang.new(print_to_stdout: false)
-minilang.exec_integer('-3')
+minilang.integer(-3)
 minilang.push
-minilang.exec_integer('5')
+minilang.integer(5)
 minilang.sub
 minilang.print
 p minilang.stdout_log == ['8']
@@ -161,12 +170,8 @@ p minilang_test('3 PUSH 5 MOD PUSH 7 PUSH 4 PUSH 5 MULT PUSH 3 ADD SUB DIV PRINT
 
 # ***
 
-# Further exploration 2:
-# - Add error handling.
-# - Detect when program returns an error, displaying the error message.
-
 result = minilang_test('6 PUSH POP POP')
-p result.is_a?(StandardError)
+p result.is_a?(EmptyStackError)
 p result.message == <<~MSG
   The stack was empty.
   --Minilang State--
@@ -178,7 +183,7 @@ p result.message == <<~MSG
 MSG
 
 result = minilang_test('6 PUSH ADD ADD')
-p result.is_a?(StandardError)
+p result.is_a?(EmptyStackError)
 p result.message == <<~MSG
   The stack was empty. Operation: +
   --Minilang State--
@@ -190,9 +195,9 @@ p result.message == <<~MSG
 MSG
 
 result = minilang_test('-3 PUSH 5 SUBTRACT PRINT')
-p result.is_a?(ArgumentError)
-p result.message == <<~MSG
-  SUBTRACT is not a valid expression.
+p result.is_a?(BadTokenError)
+puts result.message == <<~MSG
+  SUBTRACT is not a valid token.
   --Minilang State--
   @program=-3 PUSH 5 SUBTRACT PRINT
   @expressions=["PRINT"]
