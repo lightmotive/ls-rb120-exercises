@@ -134,10 +134,10 @@ module Minilang
       initialize_api_collaborator(print_to_stdout: print_to_stdout)
     end
 
-    def eval(program)
+    def eval(program, data = {})
       reset
-      self.program = program
-      self.expressions = program.split
+      self.program = program % data
+      self.expressions = self.program.split
 
       execute(expressions.shift) until expressions.empty?
 
@@ -268,7 +268,7 @@ class CentigradeToFahrenheit
   end
 
   def convert(degrees_c)
-    interpreter.eval(format(PROGRAM, degrees_c: degrees_c))
+    interpreter.eval(PROGRAM, { degrees_c: degrees_c })
   end
 
   private
