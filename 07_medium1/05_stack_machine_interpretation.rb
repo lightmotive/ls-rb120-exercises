@@ -258,3 +258,25 @@ puts result.message == <<~MSG.strip
   @program=-3 PUSH 5 SUBTRACT PRINT
   @expressions=["PRINT"]
 MSG
+
+# Convert C to F using `Minilang::GeneralInterpreter`.
+class CentigradeToFahrenheit
+  PROGRAM = '5 PUSH %<degrees_c>d PUSH 9 MULT DIV PUSH 32 ADD PRINT'
+
+  def initialize
+    @interpreter = Minilang::GeneralInterpreter.new(print_to_stdout: false)
+  end
+
+  def convert(degrees_c)
+    interpreter.eval(format(PROGRAM, degrees_c: degrees_c))
+  end
+
+  private
+
+  attr_reader :interpreter
+end
+
+c_to_f = CentigradeToFahrenheit.new
+p c_to_f.convert(100) == 212
+p c_to_f.convert(0) == 32
+p c_to_f.convert(-40) == -40
