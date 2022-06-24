@@ -14,7 +14,7 @@ module Minilang
   class StackMachine
     ACTIONS = %w[PRINT PUSH POP ADD SUB MULT DIV MOD].freeze
 
-    attr_reader :stdout_log
+    attr_reader :stdout_log, :register
     attr_accessor :print_to_stdout
 
     alias print_to_stdout? print_to_stdout
@@ -78,7 +78,7 @@ module Minilang
 
     private
 
-    attr_accessor :register
+    attr_writer :register
     attr_reader :stack
 
     def operate(operation)
@@ -140,6 +140,8 @@ module Minilang
       self.expressions = program.split
 
       execute(expressions.shift) until expressions.empty?
+
+      api.register
     end
 
     private
