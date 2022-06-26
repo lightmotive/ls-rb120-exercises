@@ -139,7 +139,11 @@ module Minilang
       self.program = program % data
       self.expressions = self.program.split
 
-      execute(expressions.shift) until expressions.empty?
+      begin
+        execute(expressions.shift) until expressions.empty?
+      rescue MinilangError => e
+        raise_error_with_state(e.class, e.message)
+      end
 
       api.register
     end
@@ -156,26 +160,14 @@ module Minilang
 
     def execute(token)
       if StackMachine::ACTIONS.include?(token)
-        execute_api_send(token)
+        api.send(token.downcase.to_sym)
       elsif token =~ /[+-]?\d+/
-        execute_api_number(token)
+        api.number(token.to_i)
       else
-        raise_error_with_state(BadTokenError, "#{token} is not a valid token.")
+        raise BadTokenError, "#{token} is not a valid token."
       end
 
       nil
-    end
-
-    def execute_api_send(token)
-      api.send(token.downcase.to_sym)
-    rescue MinilangError => e
-      raise_error_with_state(e.class, e.message)
-    end
-
-    def execute_api_number(token)
-      api.number(token.to_i)
-    rescue MinilangError => e
-      raise_error_with_state(e.class, e.message)
     end
 
     def raise_error_with_state(error_class, message)
