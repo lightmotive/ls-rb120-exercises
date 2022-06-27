@@ -90,9 +90,9 @@ module Minilang
       self
     end
 
-    def stack_pop_with_validation(detail: String.new)
+    def stack_pop_with_validation(detail: nil)
       if stack.empty?
-        detail = String.new(" #{detail}") unless detail.empty?
+        detail = String.new(" #{detail}") unless detail.nil? || detail.empty?
         raise_error_with_state(EmptyStackError, "The stack was empty.#{detail}")
       end
 
