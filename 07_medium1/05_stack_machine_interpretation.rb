@@ -161,13 +161,17 @@ module Minilang
     def execute(token)
       if StackMachine::ACTIONS.include?(token)
         stack_machine.send(token.downcase.to_sym)
-      elsif token =~ /[+-]?\d+/
+      elsif integer?(token)
         stack_machine.number(token.to_i)
       else
         raise BadTokenError, "#{token} is not a valid token."
       end
 
       nil
+    end
+
+    def integer?(token)
+      token =~ /[+-]?\d+/
     end
 
     def raise_error_with_state(error_class, message)
