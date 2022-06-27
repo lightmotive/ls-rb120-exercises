@@ -112,18 +112,18 @@ module Minilang
   # Include in classes that use `StackMachine` as a collaborator object.
   module StackMachineCollaborator
     def stdout_log
-      api.stdout_log
+      stack_machine.stdout_log
     end
 
     protected
 
-    def initialize_api_collaborator(print_to_stdout: false)
-      @api = StackMachine.new(print_to_stdout: print_to_stdout)
+    def initialize_stack_machine_collaborator(print_to_stdout: false)
+      @stack_machine = StackMachine.new(print_to_stdout: print_to_stdout)
     end
 
     private
 
-    attr_reader :api
+    attr_reader :stack_machine
   end
 
   # Text program interpreter that uses `StackMachine` internally.
@@ -131,7 +131,7 @@ module Minilang
     include StackMachineCollaborator
 
     def initialize(print_to_stdout: true)
-      initialize_api_collaborator(print_to_stdout: print_to_stdout)
+      initialize_stack_machine_collaborator(print_to_stdout: print_to_stdout)
     end
 
     def eval(program, data = {})
@@ -145,7 +145,7 @@ module Minilang
         raise_error_with_state(e.class, e.message)
       end
 
-      api.register
+      stack_machine.register
     end
 
     private
@@ -153,16 +153,16 @@ module Minilang
     attr_accessor :expressions, :program
 
     def reset
-      api.reset
+      stack_machine.reset
       self.program = nil
       self.expressions = []
     end
 
     def execute(token)
       if StackMachine::ACTIONS.include?(token)
-        api.send(token.downcase.to_sym)
+        stack_machine.send(token.downcase.to_sym)
       elsif token =~ /[+-]?\d+/
-        api.number(token.to_i)
+        stack_machine.number(token.to_i)
       else
         raise BadTokenError, "#{token} is not a valid token."
       end
@@ -201,9 +201,9 @@ p general_interpreter_test('3 PUSH PUSH 7 DIV MULT PRINT ').stdout_log == ['6']
 p general_interpreter_test('4 PUSH PUSH 7 MOD MULT PRINT ').stdout_log == ['12']
 p general_interpreter_test('-3 PUSH 5 SUB PRINT').stdout_log == ['8']
 # StackMachine example that replicates program above
-api = Minilang::StackMachine.new(print_to_stdout: false)
-api.number(-3).push.number(5).sub.print
-p api.stdout_log == ['8']
+stack_machine = Minilang::StackMachine.new(print_to_stdout: false)
+stack_machine.number(-3).push.number(5).sub.print
+p stack_machine.stdout_log == ['8']
 
 p general_interpreter_test('6 PUSH').stdout_log == []
 
