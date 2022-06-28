@@ -1,25 +1,26 @@
 # frozen_string_literal: true
 
-class InvalidInput < StandardError; end
-class InvalidGuess < StandardError; end
-
 class GuessingGame
   RANGE = (1..100).freeze
   MAX_GUESSES = 7
+  GUESS_RESULT_MESSAGES = { high: 'Your guess is too high.',
+                            low: 'Your guess is too low.',
+                            match: "That's the number!" }.freeze
+
+  GUESS_RESULT_TO_GAME_RESULT = { high: :lose, low: :lose, match: :win }.freeze
+
+  GAME_RESULT_MESSAGES = { win: 'You won!',
+                           lose: 'You have no more guesses. You lost!' }.freeze
 
   def initialize
     @number = nil
   end
 
-  GUESS_RESULT_MESSAGES = { high: 'Your guess is too high.',
-                            low: 'Your guess is too low.',
-                            match: "That's the number!\n\nYou won!" }.freeze
-
   def play
     reset
 
-    guess_result = guess
-    puts "\nYou have no more guesses. You lost!" if guess_result != :match
+    last_guess_result = play_guess
+    puts game_result_message(last_guess_result)
   end
 
   private
@@ -30,17 +31,13 @@ class GuessingGame
     self.number = rand(RANGE)
   end
 
-  def guess
+  def play_guess
     MAX_GUESSES.downto(1) do |guesses_remaining|
-      # break display_lost if guesses_remaining.zero?
-
       puts "\nYou have #{guesses_remaining} #{guesses_remaining > 1 ? 'guesses' : 'guess'} remaining."
       guess = prompt_guess
       result = guess_result(guess)
-      display_guess_result(result)
-      break result if result == :match
-
-      result
+      puts guess_result_message(result)
+      break result if result == :match || guesses_remaining == 1
     end
   end
 
@@ -56,14 +53,21 @@ class GuessingGame
 
   def guess_result(guess)
     case guess <=> number
+    when 0 then :match
     when -1 then :low
     when 1 then :high
-    when 0 then :match
     end
   end
 
-  def display_guess_result(result)
-    puts GUESS_RESULT_MESSAGES[result]
+  def game_result_message(last_guess_result)
+    game_result = GUESS_RESULT_TO_GAME_RESULT[last_guess_result]
+    message = GAME_RESULT_MESSAGES[game_result]
+
+    "\n#{message}"
+  end
+
+  def guess_result_message(result)
+    GUESS_RESULT_MESSAGES[result]
   end
 end
 
