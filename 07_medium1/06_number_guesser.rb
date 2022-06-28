@@ -50,7 +50,7 @@ class GuessingGame
   end
 
   def validate_guess
-    raise InvalidGuess unless current_guess.between?(RANGE.begin, RANGE.end)
+    raise InvalidGuess unless RANGE.cover?(current_guess)
   end
 
   def guess_match?
