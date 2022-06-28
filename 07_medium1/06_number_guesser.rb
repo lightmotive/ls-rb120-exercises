@@ -3,6 +3,7 @@
 class GuessingGame
   RANGE = (1..100).freeze
   MAX_GUESSES = 7
+
   GUESS_RESULT_MESSAGES = { high: 'Your guess is too high.',
                             low: 'Your guess is too low.',
                             match: "That's the number!" }.freeze
@@ -44,9 +45,9 @@ class GuessingGame
     loop do
       print "Enter a number between #{RANGE.begin} and #{RANGE.end}: "
       guess = gets.chomp.to_i
-      next print 'Invalid guess. ' unless RANGE.cover?(guess)
+      break guess if RANGE.cover?(guess)
 
-      break guess
+      print 'Invalid guess. '
     end
   end
 
