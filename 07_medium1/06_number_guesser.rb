@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
 class GuessingGame
-  RANGE = (1..100).freeze
-  MAX_GUESSES = 7
-
   GUESS_RESULT_MESSAGES = { high: 'Your guess is too high.',
                             low: 'Your guess is too low.',
                             match: "That's the number!" }.freeze
@@ -13,7 +10,9 @@ class GuessingGame
   GAME_RESULT_MESSAGES = { win: 'You won!',
                            lose: 'You have no more guesses. You lost!' }.freeze
 
-  def initialize
+  def initialize(range: (1..100))
+    @range = range
+    update_max_guesses
     @number = nil
   end
 
@@ -25,14 +24,19 @@ class GuessingGame
 
   private
 
-  attr_accessor :number
+  attr_accessor :range, :number
+  attr_reader :max_guesses
+
+  def update_max_guesses
+    @max_guesses = Math.log2(range.size).to_i + 1
+  end
 
   def reset
-    self.number = rand(RANGE)
+    self.number = rand(range)
   end
 
   def play_guess
-    MAX_GUESSES.downto(1) do |guesses_remaining|
+    max_guesses.downto(1) do |guesses_remaining|
       puts "\nYou have #{guesses_remaining} #{guesses_remaining > 1 ? 'guesses' : 'guess'} remaining."
       guess = prompt_guess
       result = guess_result(guess)
@@ -43,9 +47,9 @@ class GuessingGame
 
   def prompt_guess
     loop do
-      print "Enter a number between #{RANGE.begin} and #{RANGE.end}: "
+      print "Enter a number between #{range.begin} and #{range.end}: "
       guess = gets.chomp.to_i
-      break guess if RANGE.cover?(guess)
+      break guess if range.cover?(guess)
 
       print 'Invalid guess. '
     end
@@ -75,7 +79,7 @@ end
 # - A hash that stores data, e.g., strings or actions.
 # - A method that returns symbols/keys to look up that data.
 
-game = GuessingGame.new
+game = GuessingGame.new(range: 501..1500)
 game.play
 
 # You have 7 guesses remaining.
