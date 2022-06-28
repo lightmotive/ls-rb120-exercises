@@ -1,77 +1,78 @@
 # frozen_string_literal: true
 
+class InvalidInput < StandardError; end
 class InvalidGuess < StandardError; end
 
 class GuessingGame
   RANGE = (1..100).freeze
+  MAX_GUESSES = 7
+
+  def initialize
+    @number = nil
+  end
+
+  GUESS_RESULT_MESSAGES = { high: 'Your guess is too high.',
+                            low: 'Your guess is too low.',
+                            match: "That's the number!\n\nYou won!" }.freeze
 
   def play
     reset
 
-    loop do
-      break display_lost if guesses_remaining.zero?
-
-      prompt_guess
-      break display_won if guess_match?
-
-      display_hint unless guesses_remaining.zero?
-    end
+    guess_result = guess
+    puts "\nYou have no more guesses. You lost!" if guess_result != :match
   end
 
   private
 
-  attr_accessor :number, :guesses_remaining, :current_guess
+  attr_accessor :number
 
   def reset
-    puts "\n"
     self.number = rand(RANGE)
-    self.guesses_remaining = 7
-    self.current_guess = nil
   end
 
-  def prompt_guess
-    puts "You have #{guesses_remaining} guesses remaining."
-    loop do
-      print "Enter a number between #{RANGE.begin} and #{RANGE.end}: "
-      self.current_guess = input_to_i(gets.chomp)
-      validate_guess
-      self.guesses_remaining -= 1
-      break
-    rescue InvalidGuess
-      print 'Invalid guess. '
+  def guess
+    MAX_GUESSES.downto(1) do |guesses_remaining|
+      # break display_lost if guesses_remaining.zero?
+
+      puts "\nYou have #{guesses_remaining} #{guesses_remaining > 1 ? 'guesses' : 'guess'} remaining."
+      guess = prompt_guess
+      result = guess_result(guess)
+      display_guess_result(result)
+      break result if result == :match
+
+      result
     end
   end
 
-  def input_to_i(input)
-    # Normally, one would further validate the input as an integer using a
-    # validation library and raise an InvalidInput exception; skipping that
-    # because it isn't explicitly required for this exercise.
-    input.to_i
+  def prompt_guess
+    loop do
+      print "Enter a number between #{RANGE.begin} and #{RANGE.end}: "
+      guess = gets.chomp.to_i
+      next print 'Invalid guess. ' unless RANGE.cover?(guess)
+
+      break guess
+    end
   end
 
-  def validate_guess
-    raise InvalidGuess unless RANGE.cover?(current_guess)
+  def guess_result(guess)
+    case guess <=> number
+    when -1 then :low
+    when 1 then :high
+    when 0 then :match
+    end
   end
 
-  def guess_match?
-    current_guess == number
-  end
-
-  def display_hint
-    message = 'Your guess is too low.' if current_guess < number
-    message = 'Your guess is too high.' if current_guess > number
-
-    puts "#{message}\n\n"
-  end
-
-  def display_won
-    puts "That's the number!\n\nYou won!"
-  end
-
-  def display_lost
-    puts "\nYou have no more guesses. You lost!"
+  def display_guess_result(result)
+    puts GUESS_RESULT_MESSAGES[result]
   end
 end
+
+# Lesson reinforced: don't spike until the problem has been processed logically.
+# Extract nouns and verbs, writing states and behaviors that are easy to follow.
+# Let that guide the design.
+# When a specific *set* of results is expected, design the following:
+# - A hash that stores data, e.g., strings or actions.
+# - A method that returns symbols/keys to look up that data.
 
 game = GuessingGame.new
 game.play
