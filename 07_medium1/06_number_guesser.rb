@@ -19,8 +19,7 @@ class GuessingGame
   def play
     reset
 
-    last_guess_result = play_guess
-    puts game_result_message(last_guess_result)
+    puts game_result_message(play_guess)
   end
 
   private
@@ -37,7 +36,7 @@ class GuessingGame
       guess = prompt_guess
       result = guess_result(guess)
       puts guess_result_message(result)
-      break result if result == :match || guesses_remaining == 1
+      break GUESS_RESULT_TO_GAME_RESULT[result] if result == :match || guesses_remaining == 1
     end
   end
 
@@ -59,11 +58,8 @@ class GuessingGame
     end
   end
 
-  def game_result_message(last_guess_result)
-    game_result = GUESS_RESULT_TO_GAME_RESULT[last_guess_result]
-    message = GAME_RESULT_MESSAGES[game_result]
-
-    "\n#{message}"
+  def game_result_message(game_result)
+    "\n#{GAME_RESULT_MESSAGES[game_result]}"
   end
 
   def guess_result_message(result)
