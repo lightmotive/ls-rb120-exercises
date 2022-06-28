@@ -3,8 +3,7 @@
 class InvalidGuess < StandardError; end
 
 class GuessingGame
-  NUMBER_MIN = 1
-  NUMBER_MAX = 100
+  RANGE = (1..100).freeze
 
   def play
     reset
@@ -25,7 +24,7 @@ class GuessingGame
 
   def reset
     puts "\n"
-    self.number = rand(NUMBER_MIN..NUMBER_MAX)
+    self.number = rand(RANGE)
     self.guesses_remaining = 7
     self.current_guess = nil
   end
@@ -33,7 +32,7 @@ class GuessingGame
   def prompt_guess
     puts "You have #{guesses_remaining} guesses remaining."
     loop do
-      print "Enter a number between #{NUMBER_MIN} and #{NUMBER_MAX}: "
+      print "Enter a number between #{RANGE.begin} and #{RANGE.end}: "
       self.current_guess = input_to_i(gets.chomp)
       validate_guess
       self.guesses_remaining -= 1
@@ -51,7 +50,7 @@ class GuessingGame
   end
 
   def validate_guess
-    raise InvalidGuess unless current_guess.between?(NUMBER_MIN, NUMBER_MAX)
+    raise InvalidGuess unless current_guess.between?(RANGE.begin, RANGE.end)
   end
 
   def guess_match?
