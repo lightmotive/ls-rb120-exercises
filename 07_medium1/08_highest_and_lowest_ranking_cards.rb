@@ -71,22 +71,21 @@ puts cards.min.rank == 8
 puts cards.max.rank == 8
 
 # Further exploration:
-module CardValuesCustom
+module CardValuesFE
   include CardValues
 
-  RANK_VALUES = { 'Jack' => 11, 'Queen' => 12, 'King' => 13, 'Ace' => 14 }.freeze
   SUIT_VALUES = { 'Diamonds' => 1, 'Clubs' => 2, 'Hearts' => 3, 'Spades' => 4 }.freeze
 end
 
-class Card2 < Card
-  include CardValuesCustom
+class CardFE < Card
+  include CardValuesFE
 end
 
-spades4 = Card2.new(4, 'Spades')
-hearts4 = Card2.new(4, 'Hearts')
-clubs4 = Card2.new(4, 'Clubs')
-diamonds4 = Card2.new(4, 'Diamonds')
-diamonds5 = Card2.new(5, 'Diamonds')
+spades4 = CardFE.new(4, 'Spades')
+hearts4 = CardFE.new(4, 'Hearts')
+clubs4 = CardFE.new(4, 'Clubs')
+diamonds4 = CardFE.new(4, 'Diamonds')
+diamonds5 = CardFE.new(5, 'Diamonds')
 
 p spades4 > hearts4
 p hearts4 > clubs4
