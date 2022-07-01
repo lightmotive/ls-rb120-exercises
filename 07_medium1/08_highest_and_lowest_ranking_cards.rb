@@ -5,6 +5,8 @@ class Card
 
   attr_reader :rank, :suit
 
+  RANK_VALUES = { 'Jack' => 11, 'Queen' => 12, 'King' => 13, 'Ace' => 14 }.freeze
+
   def initialize(rank, suit)
     @rank = rank
     @suit = suit
@@ -18,19 +20,8 @@ class Card
     rank_value <=> other.rank_value
   end
 
-  protected
-
   def rank_value
-    return rank if rank.is_a?(Integer)
-
-    case rank
-    when 'Jack' then 11
-    when 'Queen' then 12
-    when 'King' then 13
-    when 'Ace' then 14
-    else
-      raise StandardError, 'Invalid rank.'
-    end
+    RANK_VALUES.fetch(rank, rank)
   end
 end
 
