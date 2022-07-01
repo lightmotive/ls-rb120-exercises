@@ -1,11 +1,33 @@
 # frozen_string_literal: true
 
-class Card
+module CardValues
   include Comparable
 
-  attr_reader :rank, :suit
-
   RANK_VALUES = { 'Jack' => 11, 'Queen' => 12, 'King' => 13, 'Ace' => 14 }.freeze
+  SUIT_VALUES = { 'Diamonds' => 1, 'Clubs' => 1, 'Hearts' => 1, 'Spades' => 1 }.freeze
+
+  def <=>(other)
+    rank_value = self.rank_value
+    other_rank_value = other.rank_value
+    return suit_value <=> other.suit_value if rank_value == other_rank_value
+
+    rank_value <=> other_rank_value
+  end
+
+  def rank_value
+    self.class::RANK_VALUES.fetch(rank, rank)
+  end
+
+  def suit_value
+    self.class::SUIT_VALUES.fetch(suit)
+  end
+end
+
+class Card
+  include CardValues
+  # To change value behavior, simply include `CardValues` instead.
+
+  attr_reader :rank, :suit
 
   def initialize(rank, suit)
     @rank = rank
@@ -14,14 +36,6 @@ class Card
 
   def to_s
     "#{rank} of #{suit}"
-  end
-
-  def <=>(other)
-    rank_value <=> other.rank_value
-  end
-
-  def rank_value
-    RANK_VALUES.fetch(rank, rank)
   end
 end
 
