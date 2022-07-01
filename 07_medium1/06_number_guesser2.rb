@@ -3,22 +3,22 @@
 # __Further Exploration__
 #
 # The Number Guesser game is mostly self-contained, and I think it should stay
-# that way. I couldn't think of anything to extract that is player-specific.
+# that way. I couldn't think of anything player-specific to extract.
 #
 # A `Player` class would have player-specific state and behaviors, like language,
 # stats, a list of games they own or to which they subscribe, etc. Here's how I
-# would use a `Player` class and other game-related classes to enable
-# polymorphically selecting and playing one of any number of available games,
-# including an option to play another game when the last game ends:
+# would use a `Player` class with other game-related classes to enable
+# polymorphically selecting and playing one of any number of available games:
 #
-# - Generalize a `Player` class from Tic Tac Toe, Twenty One or any other game.
-#   Determine what's player-specific--nothing that applies to specific games.
-# - Define a `Game` class that all core game classes can inherit for common game
-#   state and behaviors.
-# - Define a `GameLauncher` class that lists available games--`Game` subclasses--and
-#   acts as a standard interface between `Player` and `Game`.
-# - Implement the `GameLauncher` class as a collaborator in `Player` to enable
-#   the player to select and play games with a single call to `play`.
+# 1. A generalized `Player` class from Tic Tac Toe, Twenty One or any other game.
+#    Determine what's player-specific--nothing that applies to specific games.
+#    It would also include a list of games associated with the player (their
+#    "game library").
+# 2. A `Game` class that all core game classes can inherit for common game state
+#    and behaviors. Initialize it with a `Player` instance with which `Game`
+#    objects will collaborate.
+# 3. A `GameLauncher` class that lists the player's available games and
+#    coordinates game selection and instantiation.
 
 module Common
   def self.clear_console
@@ -35,30 +35,29 @@ end
 # - Subclass name: GameCore
 # - Required methods:
 #   - `self.name`: return the user-visible game name.
-#   - `initialize(game_launcher)`
-#     - Initialize with one argument: a `GameLauncher` class instance (object).
+#   - `initialize(player)`
 # - Typically overridden methods:
 #   - `play`: start the game.
 class Game
-  def initialize(game_launcher)
-    @game_launcher = game_launcher
+  def initialize(player)
+    @player = player
   end
 
   # `GameCore` subclass must override this `play` method to enable the
   # `GameLauncher` module to polymorphically start it.
   def play
     Common.clear_console
-    puts "Hey, #{game_launcher.player_name}, welcome to -Demo- #{self.class.name}!"
+    puts "Hey, #{player.name}, welcome to -Demo- #{self.class.name}!"
     puts "\n**This `#{__method__}` method is defined in the `#{self.class.superclass}` superclass.**" \
-         "\nOverride this method in `#{self.class}` so this invocation launches " \
-         "the game, instead--don't call `super` in the overriding method." \
+         "\nOverride `#{__method__}` in `#{self.class}` so this invocation launches " \
+         "the game--don't call `super` in the overriding method." \
          "\n\nPress enter to continue..."
     gets
   end
 
   private
 
-  attr_reader :game_launcher
+  attr_reader :player
 end
 
 # All game modules `extend` this module to enable polymorphic game selection
@@ -78,8 +77,8 @@ module GameModule
     game_core_class.name
   end
 
-  def create_game_core(game_launcher)
-    game_core_class.new(game_launcher)
+  def create_game_core(player)
+    game_core_class.new(player)
   end
 end
 
@@ -133,43 +132,41 @@ module NumberGuesser
   end
 end
 
-# Use this as a collaborator object in a `Player` class.
+# Game selection and instantiation.
 class GameLauncher
-  # The game launcher would want additional user details, including a
-  # unique ID, to forward on to each game, but we'll keep it simple here for
-  # demo purposes:
-  attr_reader :player_name
+  attr_reader :player
 
-  def initialize(available_games, player_name)
-    @available_games = available_games
-    @player_name = player_name
+  def initialize(player)
+    @player = player
     @game_core = nil
   end
 
-  def select_game
-    selected_title = prompt_game_title
-    game_index = game_names.map(&:downcase).index(selected_title.downcase)
-    self.game_core = available_games[game_index].create_game_core(self)
-  end
-
   def play
-    game_core.play
-  end
+    loop do
+      select_game
+      game_core.play
 
-  def self.prompt_player_name
-    Common.clear_console
-    puts "Hi, welcome to Game Launcher! What's your name?"
-    gets.strip
+      print 'Would you like to play another game? (Y/N)'
+      play_again = gets.chomp
+      break unless play_again.downcase == 'y'
+    end
+
+    # What else might we want to do when a player is done for now?
   end
 
   private
 
-  attr_reader :available_games
   attr_accessor :game_core
+
+  def select_game
+    selected_title = prompt_game_title
+    game_index = game_names.map(&:downcase).index(selected_title.downcase)
+    self.game_core = available_games[game_index].create_game_core(player)
+  end
 
   def prompt_game_title
     Common.clear_console
-    puts "What game would you like to play, #{player_name}?"
+    puts "What game would you like to play, #{player.name}?"
     puts game_names
     Common.display_empty_line
     print '> '
@@ -179,44 +176,36 @@ class GameLauncher
   def game_names
     available_games.map(&:game_name)
   end
+
+  def available_games
+    player.available_games
+  end
 end
 
 class Player
-  attr_reader :name
+  attr_reader :name, :available_games
 
-  def initialize
-    @name = GameLauncher.prompt_player_name
+  # The program would want additional user details, including a unique ID,
+  # that any game would use, but we'll keep it simple for demo purposes:
+  def initialize(name)
+    @name = name
+    # A program like this would probably load games based on player preferences;
+    # for now, we'll pass a static array of all game modules:
+    @available_games = [TicTacToe, TwentyOne, NumberGuesser]
 
     # ...initialize other player-specific state, such as display name, ID, etc....
-
-    # A program like this would probably load games based on player preferences;
-    # for now, we'll pass a fixed GameModule array with all games:
-    @game_launcher = GameLauncher.new(
-      [TicTacToe, TwentyOne, NumberGuesser],
-      name
-    )
   end
 
-  def play
-    loop do
-      game_launcher.select_game
-      game_launcher.play
-
-      print 'Would you like to play another game? (Y/N)'
-      play_again = gets.chomp
-      break unless play_again.downcase == 'y'
-    end
-
-    # What else might we want to do when a player is done gaming for now?
+  def self.identify
+    Common.clear_console
+    puts "Hi, what's your name?"
+    gets.strip
   end
-
-  private
-
-  attr_reader :game_launcher
 end
 
-player_one = Player.new
-# `player_one` is logged in and ready to start at this point! They can now
-# select a game, play it, then select a different game if they wish with this
-# simple `play` invocation:
-player_one.play
+player_one = Player.new(Player.identify)
+# `player_one` is logged in and ready to start at this point!
+# Pass that object to a new `GameLauncher` instance, which provides
+# the game launch interface:
+game_launcher = GameLauncher.new(player_one)
+game_launcher.play
