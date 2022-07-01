@@ -9,7 +9,7 @@ class Card
   end
 
   def to_s
-    "#{suit} of #{rank}"
+    "#{rank} of #{suit}"
   end
 end
 
