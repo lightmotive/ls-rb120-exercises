@@ -32,8 +32,9 @@ end
 
 # The core game class within a game module inherits this class.
 # Subclass requirements to enable polymorphic game selection and instantiation:
-# - Class name: GameCore
+# - Subclass name: GameCore
 # - Required methods:
+#   - `self.name`: return the user-visible game name.
 #   - `initialize(game_launcher)`
 #     - Initialize with one argument: a `GameLauncher` class instance (object).
 # - Typically overridden methods:
@@ -74,7 +75,7 @@ module GameModule
   end
 
   def game_name
-    name
+    game_core_class.name
   end
 
   def create_game_core(game_launcher)
@@ -94,13 +95,13 @@ module TicTacToe
   # That allows invoking methods like this:
   # TicTacToe.game_core_class, TwentyOne.game_core_class, etc.
 
-  def self.name
-    'Tic Tac Toe'
-  end
-
   # This class would contain the core/top-level Tic Tac Toe game logic...
   class GameCore < Game
     # `initialize` is optional here; implement `play` here to override superclass.
+
+    def self.name
+      'Tic Tac Toe'
+    end
   end
 end
 
@@ -108,13 +109,13 @@ end
 module TwentyOne
   extend GameModule
 
-  def self.name
-    'Twenty One'
-  end
-
   # This class would contain the core Twenty One game logic...
   class GameCore < Game
     # `initialize` is optional here; implement `play` here to override superclass.
+
+    def self.name
+      'Twenty One'
+    end
   end
 end
 
@@ -122,13 +123,13 @@ end
 module NumberGuesser
   extend GameModule
 
-  def self.name
-    'Number Guesser'
-  end
-
   # This class would contain the core Number Guesser game logic...
   class GameCore < Game
     # `initialize` is optional here; implement `play` here to override superclass.
+
+    def self.name
+      'Number Guesser'
+    end
   end
 end
 
