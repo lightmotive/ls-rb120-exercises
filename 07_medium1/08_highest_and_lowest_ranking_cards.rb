@@ -7,6 +7,10 @@ class Card
     @rank = rank
     @suit = suit
   end
+
+  def to_s
+    "#{suit} of #{rank}"
+  end
 end
 
 # Examples & Tests
