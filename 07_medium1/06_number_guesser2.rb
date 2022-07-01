@@ -7,9 +7,9 @@
 #
 # A `Player` class would have player-specific state and behaviors, like language,
 # stats, a list of games they own or to which they subscribe, etc. Here's how I
-# would use a `Player` class to enable polymorphically selecting and playing one
-# of any number of available games, including an option to play another game when
-# the last game ends:
+# would use a `Player` class and other game-related classes to enable
+# polymorphically selecting and playing one of any number of available games,
+# including an option to play another game when the last game ends:
 #
 # - Generalize a `Player` class from Tic Tac Toe, Twenty One or any other game.
 #   Determine what's player-specific--nothing that applies to specific games.
