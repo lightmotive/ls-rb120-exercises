@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Card
+  include Comparable
+
   attr_reader :rank, :suit
 
   def initialize(rank, suit)
@@ -11,6 +13,25 @@ class Card
   def to_s
     "#{rank} of #{suit}"
   end
+
+  def <=>(other)
+    rank_value <=> other.rank_value
+  end
+
+  protected
+
+  def rank_value
+    return rank if rank.is_a?(Integer)
+
+    case rank
+    when 'Jack' then 11
+    when 'Queen' then 12
+    when 'King' then 13
+    when 'Ace' then 14
+    else
+      raise StandardError, 'Invalid rank.'
+    end
+  end
 end
 
 # Examples & Tests
@@ -18,7 +39,7 @@ end
 cards = [Card.new(2, 'Hearts'),
          Card.new(10, 'Diamonds'),
          Card.new('Ace', 'Clubs')]
-puts cards
+puts cards.map(&:to_s) == ['2 of Hearts', '10 of Diamonds', 'Ace of Clubs']
 puts cards.min == Card.new(2, 'Hearts')
 puts cards.max == Card.new('Ace', 'Clubs')
 
