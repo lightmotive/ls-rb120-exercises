@@ -17,7 +17,7 @@
 #   state and behaviors.
 # - Define a `GameLauncher` class that lists available games--`Game` subclasses--and
 #   acts as a standard interface between `Player` and `Game`.
-# - Implement the `GameLauncher` class as a collaborator in `Player` that enable
+# - Implement the `GameLauncher` class as a collaborator in `Player` to enable
 #   the player to select and play games with a single call to `play`.
 
 module Common
