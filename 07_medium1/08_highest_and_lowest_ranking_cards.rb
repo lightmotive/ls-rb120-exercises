@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module CardValues
+module CardComparable
   include Comparable
 
   RANK_VALUES = { 'Jack' => 11, 'Queen' => 12, 'King' => 13, 'Ace' => 14 }.freeze
@@ -24,8 +24,8 @@ module CardValues
 end
 
 class Card
-  include CardValues
-  # To change value behavior, simply include `CardValues` instead.
+  include CardComparable
+  # To change value behavior, simply include `CardComparable` instead.
 
   attr_reader :rank, :suit
 
@@ -71,14 +71,14 @@ puts cards.min.rank == 8
 puts cards.max.rank == 8
 
 # Further exploration:
-module CardValuesFE
-  include CardValues
+module CardComparableFE
+  include CardComparable
 
   SUIT_VALUES = { 'Diamonds' => 1, 'Clubs' => 2, 'Hearts' => 3, 'Spades' => 4 }.freeze
 end
 
 class CardFE < Card
-  include CardValuesFE
+  include CardComparableFE
 end
 
 spades4 = CardFE.new(4, 'Spades')
