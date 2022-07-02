@@ -8,11 +8,11 @@ class Deck
   SUITS = %w[Hearts Clubs Diamonds Spades].freeze
 
   def initialize
-    initialize_cards
+    reset
   end
 
   def draw
-    initialize_cards if cards.empty?
+    reset if cards.empty?
 
     cards.shift
   end
@@ -21,13 +21,9 @@ class Deck
 
   attr_accessor :cards
 
-  def initialize_cards
-    self.cards = []
-
-    SUITS.each do |suit|
-      RANKS.each do |rank|
-        cards << Card.new(rank, suit)
-      end
+  def reset
+    self.cards = SUITS.product(RANKS).map do |suit, rank|
+      Card.new(rank, suit)
     end
 
     cards.shuffle!
