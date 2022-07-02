@@ -25,7 +25,6 @@ end
 
 class Card
   include CardComparable
-  # To change value behavior, simply include `CardComparable` instead.
 
   attr_reader :rank, :suit
 
