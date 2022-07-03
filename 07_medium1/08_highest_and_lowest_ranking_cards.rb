@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+# Card value comparison with option to override value constants for slightly
+# different card games. If it's necessary to override methods, consider
+# creating a different module to represent completely different card
+# comparability.
 module CardComparable
   include Comparable
 
@@ -38,8 +42,7 @@ class Card
   end
 end
 
-# Examples & Tests
-
+# Original exercise examples & tests:
 cards = [Card.new(2, 'Hearts'),
          Card.new(10, 'Diamonds'),
          Card.new('Ace', 'Clubs')]
@@ -70,14 +73,8 @@ puts cards.min.rank == 8
 puts cards.max.rank == 8
 
 # Further exploration:
-module CardComparableFE
-  include CardComparable
-
-  SUIT_VALUES = { 'Diamonds' => 1, 'Clubs' => 2, 'Hearts' => 3, 'Spades' => 4 }.freeze
-end
-
 class CardFE < Card
-  include CardComparableFE
+  SUIT_VALUES = { 'Diamonds' => 1, 'Clubs' => 2, 'Hearts' => 3, 'Spades' => 4 }.freeze
 end
 
 spades4 = CardFE.new(4, 'Spades')
