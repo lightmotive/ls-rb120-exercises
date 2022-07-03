@@ -22,7 +22,7 @@ class Deck
   attr_accessor :cards
 
   def reset
-    self.cards = SUITS.product(RANKS).map do |suit, rank|
+    self.cards = SUITS.to_enum(:product, RANKS).map do |suit, rank|
       Card.new(rank, suit)
     end
 
