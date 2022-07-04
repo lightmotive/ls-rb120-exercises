@@ -3,9 +3,14 @@
 require_relative '09_deck_of_cards'
 
 class PokerHand
-  def initialize(deck); end
+  def initialize(deck)
+    @deck = deck
+    deal
+  end
 
-  def print; end
+  def print
+    puts cards
+  end
 
   def evaluate
     if royal_flush?
@@ -33,23 +38,72 @@ class PokerHand
 
   private
 
-  def royal_flush?; end
+  attr_accessor :is_flush, :is_straight, :has_unique_ranks
+  attr_reader :deck, :cards
 
-  def straight_flush?; end
+  def deal
+    @cards = []
+    cards.concat(deck.draw(5))
+    cards.sort!
+  end
 
-  def four_of_a_kind?; end
+  def unique_ranks?
+    has_unique_ranks \
+    || (self.has_unique_ranks = (cards.uniq(&:rank).size == cards.size))
+  end
 
-  def full_house?; end
+  # A, K, Q, J, 10 of the same suit
+  def royal_flush?
+    cards.first.rank_value == 10 && flush? && straight?
+  end
 
-  def flush?; end
+  # Five cards of the same suit in sequence
+  def straight_flush?
+    flush? && straight?
+  end
 
-  def straight?; end
+  def four_of_a_kind?
+    # Four of a kind: Four cards of the same rank and any one other card
+  end
 
-  def three_of_a_kind?; end
+  def full_house?
+    # Full house: Three cards of one rank and two of another
+  end
 
-  def two_pair?; end
+  # Five cards of the same suit
+  def flush?
+    is_flush || (self.is_flush = (cards.map(&:suit).uniq.size == 1))
+  end
 
-  def pair?; end
+  # Straight: Five cards in sequence (for example, 4, 5, 6, 7, 8)
+  def straight?
+    # This class currently only supports "Ace-high" logic where "Ace"
+    # rank_value = 14.
+    # If the program needs to support both Ace-high and Ace-low games,
+    # update CardComparable#rank_value:
+    # - Add an (ace_low = false) parameter.
+    # - Update the method to subtract 13 from "Ace"'s default value.
+    # - One would then need to update PokerHand's logic to check
+    #   `hand.sort_by { |card| card.rank_value(false) }` wherever
+    #   position-based rank value logic is used.
+    return is_straight unless is_straight.nil?
+
+    (self.is_straight =
+       unique_ranks? \
+       && (cards.last.rank_value - cards.first.rank_value == 4))
+  end
+
+  def three_of_a_kind?
+    # Three of a kind: Three cards of the same rank
+  end
+
+  def two_pair?
+    # Two pair: Two cards of one rank and two cards of another
+  end
+
+  def pair?
+    # One pair: Two cards of the same rank
+  end
 end
 
 # Tests:
@@ -59,10 +113,9 @@ hand = PokerHand.new(Deck.new)
 hand.print
 puts hand.evaluate
 
-# Danger danger danger: monkey
-# patching for testing purposes.
+# Danger danger danger: monkey patch for testing.
 class Array
-  alias draw pop
+  alias draw shift
 end
 
 # Test that we can identify each PokerHand type.
