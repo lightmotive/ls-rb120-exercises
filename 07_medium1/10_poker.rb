@@ -3,6 +3,18 @@
 require_relative '09_deck_of_cards'
 
 class PokerHand
+  EVALUATION_METHODS = {
+    'Royal flush': :royal_flush?,
+    'Straight flush': :straight_flush?,
+    'Four of a kind': :four_of_a_kind?,
+    'Full house': :full_house?,
+    'Flush': :flush?,
+    'Straight': :straight?,
+    'Three of a kind': :three_of_a_kind?,
+    'Two pair': :two_pair?,
+    'Pair': :pair?
+  }.freeze
+
   def initialize(deck)
     @deck = deck
     deal
@@ -13,27 +25,11 @@ class PokerHand
   end
 
   def evaluate
-    if royal_flush?
-      'Royal flush'
-    elsif straight_flush?
-      'Straight flush'
-    elsif four_of_a_kind?
-      'Four of a kind'
-    elsif full_house?
-      'Full house'
-    elsif flush?
-      'Flush'
-    elsif straight?
-      'Straight'
-    elsif three_of_a_kind?
-      'Three of a kind'
-    elsif two_pair?
-      'Two pair'
-    elsif pair?
-      'Pair'
-    else
-      'High card'
+    EVALUATION_METHODS.each do |name, method|
+      return name.to_s if send(method)
     end
+
+    'High card'
   end
 
   private
