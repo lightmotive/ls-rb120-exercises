@@ -21,6 +21,7 @@ class PokerHand
     @deck = deck
     deal
     @hand_value = nil
+    @hand_value_score = nil
   end
 
   def print
@@ -36,12 +37,14 @@ class PokerHand
       @hand_value -= 1
     end
 
+    @hand_value_score = cards.max.rank_value
+
     'High card'
   end
 
   def <=>(other)
     hand_comparison = hand_value <=> other.hand_value
-    return high_card_value <=> other.high_card_value if hand_comparison.zero?
+    return hand_value_score <=> other.hand_value_score if hand_comparison.zero?
 
     hand_comparison
   end
@@ -54,13 +57,9 @@ class PokerHand
     @hand_value
   end
 
-  def high_card_value
-    cards.max.rank_value
-  end
-
   private
 
-  attr_reader :deck, :cards
+  attr_reader :deck, :cards, :hand_value_score
 
   def deal
     @cards = []
@@ -81,27 +80,68 @@ class PokerHand
 
   # A, K, Q, J, 10 of the same suit
   def royal_flush?
-    cards.first.rank_value == 10 && flush? && straight?
+    result = cards.first.rank_value == 10 && flush? && straight?
+    return false unless result
+
+    @hand_value_score = 0 # Two royal flush hands always tie.
+
+    result
   end
 
   # Five cards of the same suit in sequence
   def straight_flush?
-    flush? && straight?
+    result = flush? && straight?
+    return false unless result
+
+    @hand_value_score = cards.max.rank_value
+
+    result
+  end
+
+  def card_rank_value_groups_by_size(group_size)
+    rank_value_groups = cards.group_by(&:rank_value)
+    rank_value_groups.values.select do |cards|
+      cards.size == group_size
+    end
+  end
+
+  def card_group_rank_value_by_group_size(group_size)
+    rank_value_groups_for_group_size = card_rank_value_groups_by_size(group_size)
+    first_card_in_group = rank_value_groups_for_group_size.first.first
+    first_card_in_group.rank_value
   end
 
   # Four of a kind: Four cards of the same rank and any one other card
   def four_of_a_kind?
-    rank_group_sizes_sorted == [1, 4]
+    result = rank_group_sizes_sorted == [1, 4]
+    return false unless result
+
+    @hand_value_score = card_group_rank_value_by_group_size(4)
+
+    result
   end
 
   # Full house: Three cards of one rank and two of another
   def full_house?
-    rank_group_sizes_sorted == [2, 3]
+    result = rank_group_sizes_sorted == [2, 3]
+    return false unless result
+
+    triplet_rank_value = card_group_rank_value_by_group_size(3)
+    pair_rank_value = card_group_rank_value_by_group_size(2)
+    @hand_value_score = [triplet_rank_value, pair_rank_value]
+
+    result
   end
 
   # Five cards of the same suit
   def flush?
-    cards.map(&:suit).uniq.size == 1
+    result = cards.map(&:suit).uniq.size == 1
+
+    return false unless result
+
+    @hand_value_score = cards.max.rank_value
+
+    result
   end
 
   # Straight: Five cards in sequence (for example, 4, 5, 6, 7, 8)
@@ -120,22 +160,41 @@ class PokerHand
     #   `hand.sort_by { |card| card.rank_value(false) }` wherever
     #   position-based rank value logic is used.
     card_min, card_max = cards.minmax
-    unique_ranks? && (card_max.rank_value - card_min.rank_value == 4)
+    result = unique_ranks? && (card_max.rank_value - card_min.rank_value == 4)
+    return false unless result
+
+    @hand_value_score = cards.max.rank_value
+
+    result
   end
 
   # Three of a kind: Three cards of the same rank
   def three_of_a_kind?
-    rank_group_sizes_sorted == [1, 1, 3]
+    result = rank_group_sizes_sorted == [1, 1, 3]
+    return false unless result
+
+    @hand_value_score = card_group_rank_value_by_group_size(3)
+    result
   end
 
   # Two pair: Two cards of one rank and two cards of another
   def two_pair?
-    rank_group_sizes_sorted == [1, 2, 2]
+    result = rank_group_sizes_sorted == [1, 2, 2]
+    return false unless result
+
+    pairs = card_rank_value_groups_by_size(2)
+    @hand_value_score = pairs.map { |pair| pair.first.rank_value }.sort.reverse
+
+    result
   end
 
   # One pair: Two cards of the same rank
   def pair?
-    rank_group_sizes_sorted == [1, 1, 1, 2]
+    result = rank_group_sizes_sorted == [1, 1, 1, 2]
+    return false unless result
+
+    @hand_value_score = card_group_rank_value_by_group_size(2)
+    result
   end
 end
 
@@ -261,12 +320,21 @@ hand_ace_high = PokerHand.new([
 puts hand_ace_high.evaluate == 'High card'
 puts hand_ace_high < hand_pair
 
-hand_king_high = PokerHand.new([
-                                 Card.new(2, 'Hearts'),
-                                 Card.new('King', 'Clubs'),
-                                 Card.new(5, 'Diamonds'),
-                                 Card.new(9, 'Spades'),
-                                 Card.new(3, 'Diamonds')
-                               ])
-puts hand_king_high.evaluate == 'High card'
-puts hand_king_high < hand_ace_high
+hand_king_clubs_high = PokerHand.new([
+                                       Card.new(2, 'Hearts'),
+                                       Card.new('King', 'Clubs'),
+                                       Card.new(5, 'Diamonds'),
+                                       Card.new(9, 'Spades'),
+                                       Card.new(3, 'Diamonds')
+                                     ])
+puts hand_king_clubs_high.evaluate == 'High card'
+puts hand_king_clubs_high < hand_ace_high
+
+hand_king_hearts_high = PokerHand.new([
+                                        Card.new(2, 'Hearts'),
+                                        Card.new('King', 'Hearts'),
+                                        Card.new(5, 'Diamonds'),
+                                        Card.new(9, 'Spades'),
+                                        Card.new(3, 'Diamonds')
+                                      ])
+puts hand_king_hearts_high == hand_king_clubs_high
