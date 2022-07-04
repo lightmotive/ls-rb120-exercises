@@ -50,7 +50,10 @@ class PokerHand
     cards.uniq(&:rank).size == cards.size
   end
 
-  def rank_groups; end
+  # Array of rank-grouped card counts
+  def rank_group_sizes_sorted
+    cards.group_by(&:rank).values.map(&:size).sort
+  end
 
   # A, K, Q, J, 10 of the same suit
   def royal_flush?
@@ -64,44 +67,50 @@ class PokerHand
 
   # Four of a kind: Four cards of the same rank and any one other card
   def four_of_a_kind?
-    # ...
+    rank_group_sizes_sorted == [1, 4]
   end
 
+  # Full house: Three cards of one rank and two of another
   def full_house?
-    # Full house: Three cards of one rank and two of another
+    rank_group_sizes_sorted == [2, 3]
   end
 
-  # Five cards of the same suit.
-  # Calculated value is cached.
+  # Five cards of the same suit
   def flush?
     cards.map(&:suit).uniq.size == 1
   end
 
-  # Straight: Five cards in sequence (for example, 4, 5, 6, 7, 8).
-  # Calculated value is cached.
+  # Straight: Five cards in sequence (for example, 4, 5, 6, 7, 8)
   def straight?
     # This class currently only supports "Ace-high" logic where "Ace"
     # rank_value = 14.
     # If the program needs to support both Ace-high and Ace-low games,
-    # update CardComparable#rank_value:
+    # update CardComparable#rank_value so other games can reuse this logic:
     # - Add an (ace_low = false) parameter.
-    # - Update the method to subtract 13 from "Ace"'s default value.
+    # - Update the method to subtract 13 from "Ace"'s default value when
+    #   `ace_low == true`.
+    #     - Alternatively, reference two different `RANK_VALUES` hashes:
+    #       - `RANK_VALUES_ACE_HIGH`, in which `'Ace' => 14`.
+    #       - `RANK_VALUES_ACE_LOW`, in which `'Ace' => 1`.
     # - One would then need to update PokerHand's logic to check
     #   `hand.sort_by { |card| card.rank_value(false) }` wherever
     #   position-based rank value logic is used.
     unique_ranks? && (cards.last.rank_value - cards.first.rank_value == 4)
   end
 
+  # Three of a kind: Three cards of the same rank
   def three_of_a_kind?
-    # Three of a kind: Three cards of the same rank
+    rank_group_sizes_sorted == [1, 1, 3]
   end
 
+  # Two pair: Two cards of one rank and two cards of another
   def two_pair?
-    # Two pair: Two cards of one rank and two cards of another
+    rank_group_sizes_sorted == [1, 2, 2]
   end
 
+  # One pair: Two cards of the same rank
   def pair?
-    # One pair: Two cards of the same rank
+    rank_group_sizes_sorted == [1, 1, 1, 2]
   end
 end
 
