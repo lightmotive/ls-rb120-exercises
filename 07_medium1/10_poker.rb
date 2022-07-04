@@ -248,15 +248,35 @@ hand_four_of_a_kind = PokerHand.new([
 puts hand_four_of_a_kind.evaluate == 'Four of a kind'
 puts hand_four_of_a_kind < hand_straight_flush
 
-hand_full_house = PokerHand.new([
-                                  Card.new(3, 'Hearts'),
-                                  Card.new(3, 'Clubs'),
-                                  Card.new(5, 'Diamonds'),
-                                  Card.new(3, 'Spades'),
-                                  Card.new(5, 'Hearts')
-                                ])
-puts hand_full_house.evaluate == 'Full house'
-puts hand_full_house < hand_four_of_a_kind
+hand_full_house_three_fives_and_two_kings = PokerHand.new([
+                                                            Card.new(5, 'Hearts'),
+                                                            Card.new(5, 'Clubs'),
+                                                            Card.new('King', 'Diamonds'),
+                                                            Card.new(5, 'Spades'),
+                                                            Card.new('King', 'Hearts')
+                                                          ])
+puts hand_full_house_three_fives_and_two_kings.evaluate == 'Full house'
+puts hand_full_house_three_fives_and_two_kings < hand_four_of_a_kind
+
+hand_full_house_three_fours_and_two_aces = PokerHand.new([
+                                                           Card.new(4, 'Hearts'),
+                                                           Card.new(4, 'Clubs'),
+                                                           Card.new('Ace', 'Diamonds'),
+                                                           Card.new(4, 'Spades'),
+                                                           Card.new('Ace', 'Hearts')
+                                                         ])
+puts hand_full_house_three_fours_and_two_aces.evaluate == 'Full house'
+puts hand_full_house_three_fours_and_two_aces < hand_four_of_a_kind
+
+hand_full_house_three_fours_and_two_fives = PokerHand.new([
+                                                            Card.new(4, 'Hearts'),
+                                                            Card.new(4, 'Clubs'),
+                                                            Card.new(5, 'Diamonds'),
+                                                            Card.new(4, 'Spades'),
+                                                            Card.new(5, 'Hearts')
+                                                          ])
+puts hand_full_house_three_fours_and_two_fives.evaluate == 'Full house'
+puts hand_full_house_three_fours_and_two_fives < hand_full_house_three_fours_and_two_aces
 
 hand_flush = PokerHand.new([
                              Card.new(10, 'Hearts'),
@@ -266,7 +286,7 @@ hand_flush = PokerHand.new([
                              Card.new(3, 'Hearts')
                            ])
 puts hand_flush.evaluate == 'Flush'
-puts hand_flush < hand_full_house
+puts hand_flush < hand_full_house_three_fours_and_two_fives
 
 hand_straight_ace_high = PokerHand.new([
                                          Card.new('Queen', 'Clubs'),
