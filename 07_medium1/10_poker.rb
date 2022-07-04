@@ -51,6 +51,8 @@ class PokerHand
 
   protected
 
+  attr_reader :hand_value_score
+
   def hand_value
     evaluate if @hand_value.nil?
 
@@ -59,7 +61,7 @@ class PokerHand
 
   private
 
-  attr_reader :deck, :cards, :hand_value_score
+  attr_reader :deck, :cards
 
   def deal
     @cards = []
@@ -70,12 +72,31 @@ class PokerHand
     cards.uniq(&:rank).size == cards.size
   end
 
+  # Value cached for performance
+  def rank_groups
+    return @rank_groups unless @rank_groups.nil?
+
+    @rank_groups = cards.group_by(&:rank)
+  end
+
   # Array of rank-grouped card counts
-  # Cache value for performance.
+  # Value cached for performance.
   def rank_group_sizes_sorted
     return @rank_group_sizes_sorted unless @rank_group_sizes_sorted.nil?
 
-    @rank_group_sizes_sorted = cards.group_by(&:rank).values.map(&:size).sort
+    @rank_group_sizes_sorted = rank_groups.values.map(&:size).sort
+  end
+
+  def rank_groups_by_group_size(group_size)
+    rank_groups.values.select do |cards|
+      cards.size == group_size
+    end
+  end
+
+  def card_group_rank_value_by_group_size(group_size)
+    rank_value_groups_for_group_size = rank_groups_by_group_size(group_size)
+    first_card_in_group = rank_value_groups_for_group_size.first.first
+    first_card_in_group.rank_value
   end
 
   # A, K, Q, J, 10 of the same suit
@@ -96,19 +117,6 @@ class PokerHand
     @hand_value_score = cards.max.rank_value
 
     result
-  end
-
-  def card_rank_value_groups_by_size(group_size)
-    rank_value_groups = cards.group_by(&:rank_value)
-    rank_value_groups.values.select do |cards|
-      cards.size == group_size
-    end
-  end
-
-  def card_group_rank_value_by_group_size(group_size)
-    rank_value_groups_for_group_size = card_rank_value_groups_by_size(group_size)
-    first_card_in_group = rank_value_groups_for_group_size.first.first
-    first_card_in_group.rank_value
   end
 
   # Four of a kind: Four cards of the same rank and any one other card
@@ -182,7 +190,7 @@ class PokerHand
     result = rank_group_sizes_sorted == [1, 2, 2]
     return false unless result
 
-    pairs = card_rank_value_groups_by_size(2)
+    pairs = rank_groups_by_group_size(2)
     @hand_value_score = pairs.map { |pair| pair.first.rank_value }.sort.reverse
 
     result
