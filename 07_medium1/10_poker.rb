@@ -38,7 +38,6 @@ class PokerHand
 
   private
 
-  attr_accessor :is_flush, :is_straight, :has_unique_ranks
   attr_reader :deck, :cards
 
   def deal
@@ -47,11 +46,11 @@ class PokerHand
     cards.sort!
   end
 
-  # Calculated value is cached.
   def unique_ranks?
-    has_unique_ranks \
-    || (self.has_unique_ranks = (cards.uniq(&:rank).size == cards.size))
+    cards.uniq(&:rank).size == cards.size
   end
+
+  def rank_groups; end
 
   # A, K, Q, J, 10 of the same suit
   def royal_flush?
@@ -75,7 +74,7 @@ class PokerHand
   # Five cards of the same suit.
   # Calculated value is cached.
   def flush?
-    is_flush || (self.is_flush = (cards.map(&:suit).uniq.size == 1))
+    cards.map(&:suit).uniq.size == 1
   end
 
   # Straight: Five cards in sequence (for example, 4, 5, 6, 7, 8).
@@ -90,11 +89,7 @@ class PokerHand
     # - One would then need to update PokerHand's logic to check
     #   `hand.sort_by { |card| card.rank_value(false) }` wherever
     #   position-based rank value logic is used.
-    return is_straight unless is_straight.nil?
-
-    (self.is_straight =
-       unique_ranks? \
-       && (cards.last.rank_value - cards.first.rank_value == 4))
+    unique_ranks? && (cards.last.rank_value - cards.first.rank_value == 4)
   end
 
   def three_of_a_kind?
