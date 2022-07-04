@@ -43,7 +43,6 @@ class PokerHand
   def deal
     @cards = []
     cards.concat(deck.draw(5))
-    cards.sort!
   end
 
   def unique_ranks?
@@ -51,8 +50,11 @@ class PokerHand
   end
 
   # Array of rank-grouped card counts
+  # Cache value for performance.
   def rank_group_sizes_sorted
-    cards.group_by(&:rank).values.map(&:size).sort
+    return @rank_group_sizes_sorted unless @rank_group_sizes_sorted.nil?
+
+    @rank_group_sizes_sorted = cards.group_by(&:rank).values.map(&:size).sort
   end
 
   # A, K, Q, J, 10 of the same suit
@@ -95,7 +97,8 @@ class PokerHand
     # - One would then need to update PokerHand's logic to check
     #   `hand.sort_by { |card| card.rank_value(false) }` wherever
     #   position-based rank value logic is used.
-    unique_ranks? && (cards.last.rank_value - cards.first.rank_value == 4)
+    card_min, card_max = cards.minmax
+    unique_ranks? && (card_max.rank_value - card_min.rank_value == 4)
   end
 
   # Three of a kind: Three cards of the same rank
