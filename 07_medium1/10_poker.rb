@@ -47,6 +47,7 @@ class PokerHand
     cards.sort!
   end
 
+  # Calculated value is cached.
   def unique_ranks?
     has_unique_ranks \
     || (self.has_unique_ranks = (cards.uniq(&:rank).size == cards.size))
@@ -62,20 +63,23 @@ class PokerHand
     flush? && straight?
   end
 
+  # Four of a kind: Four cards of the same rank and any one other card
   def four_of_a_kind?
-    # Four of a kind: Four cards of the same rank and any one other card
+    # ...
   end
 
   def full_house?
     # Full house: Three cards of one rank and two of another
   end
 
-  # Five cards of the same suit
+  # Five cards of the same suit.
+  # Calculated value is cached.
   def flush?
     is_flush || (self.is_flush = (cards.map(&:suit).uniq.size == 1))
   end
 
-  # Straight: Five cards in sequence (for example, 4, 5, 6, 7, 8)
+  # Straight: Five cards in sequence (for example, 4, 5, 6, 7, 8).
+  # Calculated value is cached.
   def straight?
     # This class currently only supports "Ace-high" logic where "Ace"
     # rank_value = 14.
