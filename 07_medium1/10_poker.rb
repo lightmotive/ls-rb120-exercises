@@ -5,7 +5,11 @@ require_relative '09_deck_of_cards'
 module CardHandRankComparable
   include Comparable
 
-  # Override or merge:
+  # Override or merge in subclass.
+  # Each key should:
+  # - Be in order of top-level score.
+  # - Point to methods that extend the top-level score with second-level scores
+  #   and beyond. See `<=>` method for details.
   RANKING_METHODS = {
     'High card': :high_card
   }.freeze
@@ -24,6 +28,7 @@ module CardHandRankComparable
     end
   end
 
+  # Ensure that scores are appended in comparison order.
   def <=>(other)
     hand_score <=> other.hand_score
   end
@@ -81,8 +86,7 @@ class PokerHand
     'Straight': :straight?,
     'Three of a kind': :three_of_a_kind?,
     'Two pair': :two_pair?,
-    'Pair': :pair?,
-    'High card': :high_card
+    'Pair': :pair?
   }.merge(CardHandRankComparable::RANKING_METHODS).freeze
 
   def initialize(deck)
