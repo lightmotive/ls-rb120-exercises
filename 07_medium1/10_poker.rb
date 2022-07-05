@@ -2,43 +2,26 @@
 
 require_relative '09_deck_of_cards'
 
-class PokerHand
+module CardHandRankComparable
   include Comparable
 
-  EVALUATION_METHODS = {
-    'Royal flush': :royal_flush?,
-    'Straight flush': :straight_flush?,
-    'Four of a kind': :four_of_a_kind?,
-    'Full house': :full_house?,
-    'Flush': :flush?,
-    'Straight': :straight?,
-    'Three of a kind': :three_of_a_kind?,
-    'Two pair': :two_pair?,
-    'Pair': :pair?
+  # Override or merge:
+  RANKING_METHODS = {
+    'High card': :high_card
   }.freeze
 
-  def initialize(deck)
-    @deck = deck
-    deal
+  def initialize_card_hand_rank_comparable
     @hand_score = nil
   end
 
-  def print
-    puts cards
-  end
-
   def evaluate
-    @hand_score = [14 + EVALUATION_METHODS.size]
+    @hand_score = [14 + self.class::RANKING_METHODS.size]
 
-    EVALUATION_METHODS.each do |name, method|
+    self.class::RANKING_METHODS.each do |name, method|
       return name.to_s if send(method)
 
-      @hand_score[0] -= 1
+      hand_score[0] -= 1
     end
-
-    @hand_score << cards.max.rank_value
-
-    'High card'
   end
 
   def <=>(other)
@@ -55,11 +38,12 @@ class PokerHand
 
   private
 
-  attr_reader :deck, :cards, :count_data
+  attr_reader :cards, :count_data
 
-  def deal
+  def deal(cards)
+    @hand_score = nil
     @cards = []
-    cards.concat(deck.draw(5))
+    @cards.concat(cards)
     build_count_data
   end
 
@@ -80,6 +64,45 @@ class PokerHand
     cards.uniq(&:rank).size == cards.size
   end
 
+  def high_card
+    hand_score << cards.max.rank_value
+  end
+end
+
+class PokerHand
+  include CardHandRankComparable
+
+  RANKING_METHODS = {
+    'Royal flush': :royal_flush?,
+    'Straight flush': :straight_flush?,
+    'Four of a kind': :four_of_a_kind?,
+    'Full house': :full_house?,
+    'Flush': :flush?,
+    'Straight': :straight?,
+    'Three of a kind': :three_of_a_kind?,
+    'Two pair': :two_pair?,
+    'Pair': :pair?,
+    'High card': :high_card
+  }.merge(CardHandRankComparable::RANKING_METHODS).freeze
+
+  def initialize(deck)
+    initialize_card_hand_rank_comparable
+    @deck = deck
+    deal
+  end
+
+  def print
+    puts cards
+  end
+
+  private
+
+  attr_reader :deck
+
+  def deal
+    super(deck.draw(5))
+  end
+
   # A, K, Q, J, 10 of the same suit
   def royal_flush?
     cards.first.rank_value == 10 && flush? && straight?
@@ -95,7 +118,7 @@ class PokerHand
     four_data = count_data[4]
     return false unless four_data
 
-    @hand_score << four_data.values.first[:score_extension]
+    hand_score << four_data.values.first[:score_extension]
 
     true
   end
@@ -106,7 +129,7 @@ class PokerHand
     two_data = count_data[2]
     return false unless three_data && two_data
 
-    @hand_score << three_data.values.first[:score_extension] \
+    hand_score << three_data.values.first[:score_extension] \
                 << two_data.values.first[:score_extension]
 
     true
@@ -116,7 +139,7 @@ class PokerHand
   def flush?
     return false unless cards.map(&:suit).uniq.size == 1
 
-    @hand_score << cards.max.rank_value
+    hand_score << cards.max.rank_value
 
     true
   end
@@ -139,7 +162,7 @@ class PokerHand
     card_min, card_max = cards.minmax
     return false unless unique_ranks? && (card_max.rank_value - card_min.rank_value == 4)
 
-    @hand_score << cards.max.rank_value
+    hand_score << cards.max.rank_value
 
     true
   end
@@ -149,7 +172,7 @@ class PokerHand
     three_data = count_data[3]
     return false unless three_data
 
-    @hand_score << three_data.values.first[:score_extension]
+    hand_score << three_data.values.first[:score_extension]
 
     true
   end
@@ -160,7 +183,7 @@ class PokerHand
 
     pair_scores_reverse =
       count_data[2].values.map { |data| data[:score_extension] }.sort.reverse
-    @hand_score.concat(pair_scores_reverse)
+    hand_score.concat(pair_scores_reverse)
 
     true
   end
@@ -169,7 +192,7 @@ class PokerHand
   def pair?
     return false unless count_data[2]&.count == 1
 
-    @hand_score << count_data[2].values.first[:score_extension]
+    hand_score << count_data[2].values.first[:score_extension]
 
     true
   end
