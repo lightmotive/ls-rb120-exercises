@@ -20,8 +20,7 @@ class PokerHand
   def initialize(deck)
     @deck = deck
     deal
-    @hand_value = nil
-    @hand_value_score = nil
+    @hand_score = nil
   end
 
   def print
@@ -29,127 +28,97 @@ class PokerHand
   end
 
   def evaluate
-    @hand_value = 14 + EVALUATION_METHODS.size
+    @hand_score = [14 + EVALUATION_METHODS.size]
 
     EVALUATION_METHODS.each do |name, method|
       return name.to_s if send(method)
 
-      @hand_value -= 1
+      @hand_score[0] -= 1
     end
 
-    @hand_value_score = cards.max.rank_value
+    @hand_score << cards.max.rank_value
 
     'High card'
   end
 
   def <=>(other)
-    hand_comparison = hand_value <=> other.hand_value
-    return hand_value_score <=> other.hand_value_score if hand_comparison.zero?
-
-    hand_comparison
+    hand_score <=> other.hand_score
   end
 
   protected
 
-  attr_reader :hand_value_score
+  def hand_score
+    evaluate if @hand_score.nil?
 
-  def hand_value
-    evaluate if @hand_value.nil?
-
-    @hand_value
+    @hand_score
   end
 
   private
 
-  attr_reader :deck, :cards
+  attr_reader :deck, :cards, :count_data
 
   def deal
     @cards = []
     cards.concat(deck.draw(5))
+    build_count_data
+  end
+
+  # => { count:
+  #      { rank:
+  #        { score_extension: Integer, cards: Array }
+  #      }
+  #     }
+  def build_count_data
+    rank_groups = cards.group_by(&:rank)
+    @count_data = rank_groups.each_with_object({}) do |(rank, cards), data|
+      data[cards.size] = {} if data[cards.size].nil?
+      data[cards.size][rank] = { score_extension: cards.first.rank_value, cards: cards }
+    end
   end
 
   def unique_ranks?
     cards.uniq(&:rank).size == cards.size
   end
 
-  # Value cached for performance
-  def rank_groups
-    return @rank_groups unless @rank_groups.nil?
-
-    @rank_groups = cards.group_by(&:rank)
-  end
-
-  # Array of rank-grouped card counts
-  # Value cached for performance.
-  def rank_group_sizes_sorted
-    return @rank_group_sizes_sorted unless @rank_group_sizes_sorted.nil?
-
-    @rank_group_sizes_sorted = rank_groups.values.map(&:size).sort
-  end
-
-  def rank_groups_by_group_size(group_size)
-    rank_groups.values.select do |cards|
-      cards.size == group_size
-    end
-  end
-
-  def card_group_rank_value_by_group_size(group_size)
-    rank_value_groups_for_group_size = rank_groups_by_group_size(group_size)
-    first_card_in_group = rank_value_groups_for_group_size.first.first
-    first_card_in_group.rank_value
-  end
-
   # A, K, Q, J, 10 of the same suit
   def royal_flush?
-    result = cards.first.rank_value == 10 && flush? && straight?
-    return false unless result
-
-    @hand_value_score = 0 # Two royal flush hands always tie.
-
-    result
+    cards.first.rank_value == 10 && flush? && straight?
   end
 
   # Five cards of the same suit in sequence
   def straight_flush?
-    result = flush? && straight?
-    return false unless result
-
-    @hand_value_score = cards.max.rank_value
-
-    result
+    flush? && straight?
   end
 
   # Four of a kind: Four cards of the same rank and any one other card
   def four_of_a_kind?
-    result = rank_group_sizes_sorted == [1, 4]
-    return false unless result
+    four_data = count_data[4]
+    return false unless four_data
 
-    @hand_value_score = card_group_rank_value_by_group_size(4)
+    @hand_score << four_data.values.first[:score_extension]
 
-    result
+    true
   end
 
   # Full house: Three cards of one rank and two of another
   def full_house?
-    result = rank_group_sizes_sorted == [2, 3]
-    return false unless result
+    three_data = count_data[3]
+    two_data = count_data[2]
+    return false unless three_data && two_data
 
-    triplet_rank_value = card_group_rank_value_by_group_size(3)
-    pair_rank_value = card_group_rank_value_by_group_size(2)
-    @hand_value_score = [triplet_rank_value, pair_rank_value]
+    @hand_score << three_data.values.first[:score_extension] \
+                << two_data.values.first[:score_extension]
 
-    result
+    true
   end
 
   # Five cards of the same suit
   def flush?
-    result = cards.map(&:suit).uniq.size == 1
+    return false unless cards.map(&:suit).uniq.size == 1
 
-    return false unless result
+    @hand_score << cards.max.rank_value
 
-    @hand_value_score = cards.max.rank_value
-
-    result
+    true
   end
 
   # Straight: Five cards in sequence (for example, 4, 5, 6, 7, 8)
@@ -168,41 +137,41 @@ class PokerHand
     #   `hand.sort_by { |card| card.rank_value(false) }` wherever
     #   position-based rank value logic is used.
     card_min, card_max = cards.minmax
-    result = unique_ranks? && (card_max.rank_value - card_min.rank_value == 4)
-    return false unless result
+    return false unless unique_ranks? && (card_max.rank_value - card_min.rank_value == 4)
 
-    @hand_value_score = cards.max.rank_value
+    @hand_score << cards.max.rank_value
 
-    result
+    true
   end
 
   # Three of a kind: Three cards of the same rank
   def three_of_a_kind?
-    result = rank_group_sizes_sorted == [1, 1, 3]
-    return false unless result
+    three_data = count_data[3]
+    return false unless three_data
 
-    @hand_value_score = card_group_rank_value_by_group_size(3)
-    result
+    @hand_score << three_data.values.first[:score_extension]
+
+    true
   end
 
   # Two pair: Two cards of one rank and two cards of another
   def two_pair?
-    result = rank_group_sizes_sorted == [1, 2, 2]
-    return false unless result
+    return false unless count_data[2]&.count == 2
 
-    pairs = rank_groups_by_group_size(2)
-    @hand_value_score = pairs.map { |pair| pair.first.rank_value }.sort.reverse
+    pair_scores_reverse =
+      count_data[2].values.map { |data| data[:score_extension] }.sort.reverse
+    @hand_score.concat(pair_scores_reverse)
 
-    result
+    true
   end
 
   # One pair: Two cards of the same rank
   def pair?
-    result = rank_group_sizes_sorted == [1, 1, 1, 2]
-    return false unless result
+    return false unless count_data[2]&.count == 1
 
-    @hand_value_score = card_group_rank_value_by_group_size(2)
-    result
+    @hand_score << count_data[2].values.first[:score_extension]
+
+    true
   end
 end
 
@@ -228,25 +197,45 @@ hand_royal_flush = PokerHand.new([
                                  ])
 puts hand_royal_flush.evaluate == 'Royal flush'
 
-hand_straight_flush = PokerHand.new([
-                                      Card.new(8, 'Clubs'),
-                                      Card.new(9, 'Clubs'),
-                                      Card.new('Queen', 'Clubs'),
-                                      Card.new(10, 'Clubs'),
-                                      Card.new('Jack', 'Clubs')
-                                    ])
-puts hand_straight_flush.evaluate == 'Straight flush'
-puts hand_straight_flush < hand_royal_flush
+hand_straight_flush_queen_high = PokerHand.new([
+                                                 Card.new(8, 'Clubs'),
+                                                 Card.new(9, 'Clubs'),
+                                                 Card.new('Queen', 'Clubs'),
+                                                 Card.new(10, 'Clubs'),
+                                                 Card.new('Jack', 'Clubs')
+                                               ])
+puts hand_straight_flush_queen_high.evaluate == 'Straight flush'
+puts hand_straight_flush_queen_high < hand_royal_flush
 
-hand_four_of_a_kind = PokerHand.new([
-                                      Card.new(3, 'Hearts'),
-                                      Card.new(3, 'Clubs'),
-                                      Card.new(5, 'Diamonds'),
-                                      Card.new(3, 'Spades'),
-                                      Card.new(3, 'Diamonds')
-                                    ])
-puts hand_four_of_a_kind.evaluate == 'Four of a kind'
-puts hand_four_of_a_kind < hand_straight_flush
+hand_straight_flush_nine_high = PokerHand.new([
+                                                Card.new(5, 'Clubs'),
+                                                Card.new(6, 'Clubs'),
+                                                Card.new(9, 'Clubs'),
+                                                Card.new(7, 'Clubs'),
+                                                Card.new(8, 'Clubs')
+                                              ])
+puts hand_straight_flush_nine_high.evaluate == 'Straight flush'
+puts hand_straight_flush_nine_high < hand_straight_flush_queen_high
+
+hand_four_of_a_kind_six_high = PokerHand.new([
+                                               Card.new(6, 'Diamonds'),
+                                               Card.new(6, 'Hearts'),
+                                               Card.new(5, 'Diamonds'),
+                                               Card.new(6, 'Spades'),
+                                               Card.new(6, 'Clubs')
+                                             ])
+puts hand_four_of_a_kind_six_high.evaluate == 'Four of a kind'
+puts hand_four_of_a_kind_six_high < hand_straight_flush_nine_high
+
+hand_four_of_a_kind_three_high = PokerHand.new([
+                                                 Card.new(3, 'Hearts'),
+                                                 Card.new(3, 'Clubs'),
+                                                 Card.new(5, 'Diamonds'),
+                                                 Card.new(3, 'Spades'),
+                                                 Card.new(3, 'Diamonds')
+                                               ])
+puts hand_four_of_a_kind_three_high.evaluate == 'Four of a kind'
+puts hand_four_of_a_kind_three_high < hand_four_of_a_kind_six_high
 
 hand_full_house_three_fives_and_two_kings = PokerHand.new([
                                                             Card.new(5, 'Hearts'),
@@ -256,7 +245,7 @@ hand_full_house_three_fives_and_two_kings = PokerHand.new([
                                                             Card.new('King', 'Hearts')
                                                           ])
 puts hand_full_house_three_fives_and_two_kings.evaluate == 'Full house'
-puts hand_full_house_three_fives_and_two_kings < hand_four_of_a_kind
+puts hand_full_house_three_fives_and_two_kings < hand_four_of_a_kind_three_high
 
 hand_full_house_three_fours_and_two_aces = PokerHand.new([
                                                            Card.new(4, 'Hearts'),
@@ -266,7 +255,7 @@ hand_full_house_three_fours_and_two_aces = PokerHand.new([
                                                            Card.new('Ace', 'Hearts')
                                                          ])
 puts hand_full_house_three_fours_and_two_aces.evaluate == 'Full house'
-puts hand_full_house_three_fours_and_two_aces < hand_four_of_a_kind
+puts hand_full_house_three_fours_and_two_aces < hand_full_house_three_fives_and_two_kings
 
 hand_full_house_three_fours_and_two_fives = PokerHand.new([
                                                             Card.new(4, 'Hearts'),
@@ -278,15 +267,25 @@ hand_full_house_three_fours_and_two_fives = PokerHand.new([
 puts hand_full_house_three_fours_and_two_fives.evaluate == 'Full house'
 puts hand_full_house_three_fours_and_two_fives < hand_full_house_three_fours_and_two_aces
 
-hand_flush = PokerHand.new([
-                             Card.new(10, 'Hearts'),
-                             Card.new('Ace', 'Hearts'),
-                             Card.new(2, 'Hearts'),
-                             Card.new('King', 'Hearts'),
-                             Card.new(3, 'Hearts')
-                           ])
-puts hand_flush.evaluate == 'Flush'
-puts hand_flush < hand_full_house_three_fours_and_two_fives
+hand_flush_ace_high = PokerHand.new([
+                                      Card.new(10, 'Hearts'),
+                                      Card.new('Ace', 'Hearts'),
+                                      Card.new(2, 'Hearts'),
+                                      Card.new('King', 'Hearts'),
+                                      Card.new(3, 'Hearts')
+                                    ])
+puts hand_flush_ace_high.evaluate == 'Flush'
+puts hand_flush_ace_high < hand_full_house_three_fours_and_two_fives
+
+hand_flush_ten_high = PokerHand.new([
+                                      Card.new(10, 'Clubs'),
+                                      Card.new(2, 'Clubs'),
+                                      Card.new(9, 'Clubs'),
+                                      Card.new(3, 'Clubs'),
+                                      Card.new(8, 'Clubs')
+                                    ])
+puts hand_flush_ten_high.evaluate == 'Flush'
+puts hand_flush_ten_high < hand_flush_ace_high
 
 hand_straight_ace_high = PokerHand.new([
                                          Card.new('Queen', 'Clubs'),
@@ -296,7 +295,7 @@ hand_straight_ace_high = PokerHand.new([
                                          Card.new('Jack', 'Clubs')
                                        ])
 puts hand_straight_ace_high.evaluate == 'Straight'
-puts hand_straight_ace_high < hand_flush
+puts hand_straight_ace_high < hand_flush_ten_high
 
 hand_straight_jack_high = PokerHand.new([
                                           Card.new(8, 'Clubs'),
