@@ -14,10 +14,6 @@ module CardHandRankComparable
     'High card': :high_card
   }.freeze
 
-  def initialize_card_hand_rank_comparable
-    @hand_score = nil
-  end
-
   def evaluate
     @hand_score = [14 + self.class::RANKING_METHODS.size]
 
@@ -90,7 +86,6 @@ class PokerHand
   }.merge(CardHandRankComparable::RANKING_METHODS).freeze
 
   def initialize(deck)
-    initialize_card_hand_rank_comparable
     @deck = deck
     deal
   end
