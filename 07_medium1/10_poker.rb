@@ -2,7 +2,23 @@
 
 require_relative '09_deck_of_cards'
 
+module Cards
+  private
+
+  attr_reader :cards
+
+  def deal(cards)
+    @cards = []
+    @cards.concat(cards)
+  end
+
+  def unique_ranks?
+    cards.uniq(&:rank).size == cards.size
+  end
+end
+
 module CardHandRankComparable
+  include Cards
   include Comparable
 
   # Override or merge in subclass.
@@ -39,12 +55,11 @@ module CardHandRankComparable
 
   private
 
-  attr_reader :cards, :count_data
+  attr_reader :count_data
 
   def deal(cards)
+    super
     @hand_score = nil
-    @cards = []
-    @cards.concat(cards)
     build_count_data
   end
 
@@ -59,10 +74,6 @@ module CardHandRankComparable
       data[cards.size] = {} if data[cards.size].nil?
       data[cards.size][rank] = { score_extension: cards.first.rank_value, cards: cards }
     end
-  end
-
-  def unique_ranks?
-    cards.uniq(&:rank).size == cards.size
   end
 
   def high_card
