@@ -9,7 +9,7 @@ puts '** Poker test results: **'
 class DeckMock < Deck
   def initialize(cards_array)
     super()
-    @cards = cards_array
+    self.cards = cards_array
   end
 
   def self.create(cards_array)
