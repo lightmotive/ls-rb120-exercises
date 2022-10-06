@@ -38,6 +38,8 @@ class Nobility < Person
     "#{title} #{name}"
   end
 
+  private
+
   def gait
     'struts'
   end
